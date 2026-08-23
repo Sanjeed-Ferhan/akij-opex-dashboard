@@ -96,6 +96,51 @@ tbody tr:hover { background: var(--bg-card-hover); }
 .refresh-btn { position: relative; }
 .refresh-btn.loading .spinner-sm { display: inline-block; }
 .spinner-sm { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; }
+.ai-btn { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(139,92,246,0.3); }
+.ai-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(139,92,246,0.4); }
+.ai-btn .pulse { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.ai-panel { position: fixed; right: -420px; top: 0; width: 420px; height: 100vh; background: var(--bg-secondary); border-left: 1px solid var(--border); z-index: 200; transition: right 0.3s ease; display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.3); }
+.ai-panel.open { right: 0; }
+.ai-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(99,102,241,0.1)); }
+.ai-header h2 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.ai-header .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.ai-header .close-btn:hover { background: var(--bg-primary); color: var(--text-primary); }
+.ai-messages { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.ai-message { margin-bottom: 16px; animation: slideIn 0.3s ease; }
+.ai-message.user { text-align: right; }
+.ai-message .bubble { display: inline-block; padding: 10px 14px; border-radius: 12px; max-width: 85%; font-size: 13px; line-height: 1.5; }
+.ai-message.bot .bubble { background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); border-bottom-left-radius: 4px; }
+.ai-message.user .bubble { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+.ai-input-area { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.ai-input-area input { flex: 1; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); padding: 10px 14px; border-radius: 8px; font-size: 13px; outline: none; }
+.ai-input-area input:focus { border-color: var(--purple); }
+.ai-input-area button { background: var(--purple); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.ai-alert { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.ai-alert .alert-title { font-size: 12px; font-weight: 600; color: var(--danger); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.ai-alert .alert-detail { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+.ai-ok { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.ai-ok .alert-title { font-size: 12px; font-weight: 600; color: var(--success); margin-bottom: 4px; }
+.ai-ok .alert-detail { font-size: 12px; color: var(--text-secondary); }
+.ai-warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.ai-warn .alert-title { font-size: 12px; font-weight: 600; color: var(--warning); margin-bottom: 4px; }
+.ai-warn .alert-detail { font-size: 12px; color: var(--text-secondary); }
+.ai-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; display: none; }
+.ai-overlay.show { display: block; }
+.ai-typing { display: inline-flex; gap: 4px; padding: 8px 14px; }
+.ai-typing span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: typing 1.4s infinite; }
+.ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+.ai-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ai-suggestion { background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-secondary); padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; transition: all 0.2s; }
+.ai-suggestion:hover { border-color: var(--purple); color: var(--purple); }
+.ai-summary { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.ai-summary h4 { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+.ai-metric { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.ai-metric:last-child { border-bottom: none; }
+.ai-metric-label { font-size: 12px; color: var(--text-secondary); }
+.ai-metric-value { font-size: 12px; font-weight: 600; }
 @media (max-width: 768px) {
   .header { padding: 12px 16px; }
   .filters { padding: 12px 16px; }
@@ -112,6 +157,7 @@ tbody tr:hover { background: var(--bg-card-hover); }
   <div class="header-meta">
     <span id="lastUpdated">Loading...</span>
     <button class="btn btn-outline refresh-btn" onclick="refreshAllData()"><span class="spinner-sm"></span>Refresh</button>
+    <button class="ai-btn" onclick="toggleAIPanel()"><span class="pulse"></span>AI Agent</button>
   </div>
 </div>
 
@@ -287,6 +333,18 @@ tbody tr:hover { background: var(--bg-card-hover); }
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="ai-overlay" id="aiOverlay" onclick="toggleAIPanel()"></div>
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-header">
+    <h2>AI Performance Agent</h2>
+    <button class="close-btn" onclick="toggleAIPanel()">x</button>
+  </div>
+  <div class="ai-messages" id="aiMessages"></div>
+  <div class="ai-input-area">
+    <input type="text" id="aiInput" placeholder="Ask about performance..." onkeypress="if(event.key==='Enter')sendAIMessage()">
+    <button onclick="sendAIMessage()">Send</button>
+  </div>
+</div>
 
 <script>
 var SB_URL = 'https://vpwbcuxwxkqvauffqooj.supabase.co';
@@ -774,6 +832,286 @@ function refreshAllData() {
   const btn = document.querySelector('.refresh-btn');
   btn.classList.add('loading');
   loadAllData().finally(() => btn.classList.remove('loading'));
+}
+
+function toggleAIPanel() {
+  const panel = document.getElementById('aiPanel');
+  const overlay = document.getElementById('aiOverlay');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  overlay.classList.toggle('show');
+  if (!isOpen && !document.getElementById('aiMessages').innerHTML) {
+    runAIAnalysis();
+  }
+}
+
+function addAIMessage(html, type = 'bot') {
+  const container = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'ai-message ' + type;
+  div.innerHTML = '<div class="bubble">' + html + '</div>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addAITyping() {
+  const container = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'ai-message bot';
+  div.id = 'aiTyping';
+  div.innerHTML = '<div class="bubble"><div class="ai-typing"><span></span><span></span><span></span></div></div>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeAITyping() {
+  const el = document.getElementById('aiTyping');
+  if (el) el.remove();
+}
+
+function addAISuggestions(suggestions) {
+  const container = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'ai-message bot';
+  div.innerHTML = '<div class="ai-suggestions">' + suggestions.map(s => '<span class="ai-suggestion" onclick="handleSuggestion(\'' + s + '\')">' + s + '</span>').join('') + '</div>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleSuggestion(s) {
+  addAIMessage(s, 'user');
+  processAIQuery(s);
+}
+
+function sendAIMessage() {
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addAIMessage(msg, 'user');
+  input.value = '';
+  processAIQuery(msg);
+}
+
+function processAIQuery(query) {
+  addAITyping();
+  setTimeout(() => {
+    removeAITyping();
+    const q = query.toLowerCase();
+    if (q.includes('oee')) {
+      analyzeOEEQuery();
+    } else if (q.includes('5s')) {
+      analyze5SQuery();
+    } else if (q.includes('breakdown') || q.includes('downtime')) {
+      analyzeBreakdownQuery();
+    } else if (q.includes('saving')) {
+      analyzeSavingsQuery();
+    } else if (q.includes('production') || q.includes('capacity')) {
+      analyzeProductionQuery();
+    } else if (q.includes('quality') || q.includes('defect')) {
+      analyzeQualityQuery();
+    } else if (q.includes('problem') || q.includes('issue')) {
+      analyzeProblemQuery();
+    } else {
+      addAIMessage('I can help analyze: OEE performance, 5S scores, breakdowns/downtime, cost savings, production vs capacity, quality metrics, or open issues. What would you like to know?');
+    }
+  }, 800);
+}
+
+function analyzeOEEQuery() {
+  const oeeData = sbuFilter(monthFilterByDate(allData.oee, 'production_date'));
+  if (!oeeData.length) { addAIMessage('No OEE data found for this period.'); return; }
+  const dates = [...new Set(oeeData.map(r => r.production_date))].sort();
+  const dailyOEE = dates.map(d => ({ date: d, oee: avg(oeeData.filter(r => r.production_date === d).map(r => r.oee_pct)) }));
+  const worst = dailyOEE.reduce((a, b) => a.oee < b.oee ? a : b);
+  const best = dailyOEE.reduce((a, b) => a.oee > b.oee ? a : b);
+  const trend = dailyOEE.length > 1 ? dailyOEE[dailyOEE.length - 1].oee - dailyOEE[0].oee : 0;
+  let html = '<strong>OEE Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Avg OEE</span><span class="ai-metric-value">' + (avg(oeeData.map(r => r.oee_pct)) * 100).toFixed(1) + '%</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Best Day</span><span class="ai-metric-value" style="color:var(--success)">' + best.date + ' (' + (best.oee * 100).toFixed(1) + '%)</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Worst Day</span><span class="ai-metric-value" style="color:var(--danger)">' + worst.date + ' (' + (worst.oee * 100).toFixed(1) + '%)</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Trend</span><span class="ai-metric-value" style="color:' + (trend > 0 ? 'var(--success)' : trend < 0 ? 'var(--danger)' : 'var(--text-muted)') + '">' + (trend > 0 ? 'Up' : trend < 0 ? 'Down' : 'Flat') + ' (' + (trend * 100).toFixed(1) + 'pp)</span></div>';
+  html += '</div>';
+  const lowDays = dailyOEE.filter(d => d.oee < 0.5);
+  if (lowDays.length) {
+    html += '<div class="ai-alert"><div class="alert-title">Low OEE Days Detected</div><div class="alert-detail">' + lowDays.length + ' days with OEE below 50%: ' + lowDays.map(d => d.date + ' (' + (d.oee * 100).toFixed(1) + '%)').join(', ') + '</div></div>';
+  }
+  addAIMessage(html);
+}
+
+function analyze5SQuery() {
+  const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
+  if (!fiveS.length) { addAIMessage('No 5S audit data for this period.'); return; }
+  const scores = fiveS.map(r => r.final_score_pct);
+  const avgScore = avg(scores);
+  const lowAudits = fiveS.filter(r => r.final_score_pct < 50);
+  let html = '<strong>5S Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Audits</span><span class="ai-metric-value">' + fiveS.length + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Avg Score</span><span class="ai-metric-value">' + avgScore.toFixed(1) + '%</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Min / Max</span><span class="ai-metric-value">' + Math.min(...scores).toFixed(1) + '% / ' + Math.max(...scores).toFixed(1) + '%</span></div>';
+  html += '</div>';
+  if (avgScore < 60) {
+    html += '<div class="ai-alert"><div class="alert-title">Below Target</div><div class="alert-detail">Average 5S score (' + avgScore.toFixed(1) + '%) is below 60% target. Immediate action needed.</div></div>';
+  } else if (avgScore < 80) {
+    html += '<div class="ai-warn"><div class="alert-title">Room for Improvement</div><div class="alert-detail">Average score (' + avgScore.toFixed(1) + '%) is below 80% target. Focus on Sustain and Standardize areas.</div></div>';
+  } else {
+    html += '<div class="ai-ok"><div class="alert-title">Good Performance</div><div class="alert-detail">Average 5S score (' + avgScore.toFixed(1) + '%) meets target. Keep sustaining.</div></div>';
+  }
+  if (lowAudits.length) {
+    html += '<div class="ai-alert"><div class="alert-title">Failed Audits (< 50%)</div><div class="alert-detail">' + lowAudits.map(a => a.audit_no + ' at ' + a.audit_place + ': ' + a.final_score_pct + '%').join('<br>') + '</div></div>';
+  }
+  addAIMessage(html);
+}
+
+function analyzeBreakdownQuery() {
+  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+  const cons = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date'));
+  if (!breakdown.length && !cons.length) { addAIMessage('No breakdown data for this period.'); return; }
+  const all = [...breakdown, ...cons];
+  const totalDowntime = sum(all.map(r => r.downtime || 0));
+  const topTypes = {};
+  all.forEach(r => { topTypes[r.breakdown_type || 'Unknown'] = (topTypes[r.breakdown_type || 'Unknown'] || 0) + 1; });
+  const topReasons = [...Object.entries(topTypes)].sort((a, b) => b[1] - a[1]).slice(0, 3);
+  let html = '<strong>Breakdown Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Breakdowns</span><span class="ai-metric-value">' + all.length + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Downtime</span><span class="ai-metric-value">' + (totalDowntime / 60).toFixed(1) + ' hours</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Avg per Event</span><span class="ai-metric-value">' + (totalDowntime / all.length).toFixed(0) + ' min</span></div>';
+  html += '</div>';
+  html += '<div class="ai-warn"><div class="alert-title">Top Breakdown Types</div><div class="alert-detail">' + topReasons.map(t => t[0] + ': ' + t[1] + ' events').join('<br>') + '</div></div>';
+  const worst = all.reduce((a, b) => (a.downtime || 0) > (b.downtime || 0) ? a : b);
+  html += '<div class="ai-alert"><div class="alert-title">Worst Breakdown</div><div class="alert-detail">' + worst.breakdown_name + ' (' + worst.sbu + '): ' + ((worst.downtime || 0) / 60).toFixed(1) + ' hours - ' + worst.breakdown_reason + '</div></div>';
+  addAIMessage(html);
+}
+
+function analyzeSavingsQuery() {
+  const monthlyKey = currentYear + '-' + String(MONTHS.indexOf(currentMonth) + 1).padStart(2, '0');
+  const costSavings = sbuFilter(monthFilterByMonthlyValues(allData.costSavings));
+  const total = sum(costSavings.map(r => r.monthly_values?.[monthlyKey] || 0));
+  let html = '<strong>Cost Savings Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Monthly Savings</span><span class="ai-metric-value">' + fmtBDT(total) + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Active Cards</span><span class="ai-metric-value">' + costSavings.length + '</span></div>';
+  html += '</div>';
+  const bySource = {};
+  costSavings.forEach(r => { bySource[r.source] = (bySource[r.source] || 0) + (r.monthly_values?.[monthlyKey] || 0); });
+  const sorted = Object.entries(bySource).sort((a, b) => b[1] - a[1]);
+  if (sorted.length) {
+    html += '<div class="ai-ok"><div class="alert-title">By Source</div><div class="alert-detail">' + sorted.map(s => s[0] + ': ' + fmtBDT(s[1])).join('<br>') + '</div></div>';
+  }
+  if (total === 0) {
+    html += '<div class="ai-alert"><div class="alert-title">No Savings This Month</div><div class="alert-detail">No cost savings recorded for ' + currentMonth + ' ' + currentYear + '. Review improvement cards.</div></div>';
+  }
+  addAIMessage(html);
+}
+
+function analyzeProductionQuery() {
+  const prodData = sbuFilter(monthFilterByDate(allData.oeePacing, 'production_date'));
+  if (!prodData.length) { addAIMessage('No production data for this period.'); return; }
+  const totalProd = sum(prodData.map(r => r.total_production || 0));
+  const totalCap = sum(prodData.map(r => r.shift_capacity || 0));
+  const capUtil = totalCap > 0 ? (totalProd / totalCap * 100).toFixed(1) : 'N/A';
+  let html = '<strong>Production Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Production</span><span class="ai-metric-value">' + fmt(totalProd) + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Capacity</span><span class="ai-metric-value">' + fmt(totalCap) + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Capacity Utilization</span><span class="ai-metric-value">' + capUtil + '%</span></div>';
+  html += '</div>';
+  if (parseFloat(capUtil) < 80) {
+    html += '<div class="ai-alert"><div class="alert-title">Low Utilization</div><div class="alert-detail">Capacity utilization at ' + capUtil + '%. Identify bottlenecks or demand constraints.</div></div>';
+  }
+  addAIMessage(html);
+}
+
+function analyzeQualityQuery() {
+  const qcpData = sbuFilter(monthFilterByDate(allData.qcpAudit, 'audit_date'));
+  if (!qcpData.length) { addAIMessage('No QCP data for this period.'); return; }
+  const passRate = (qcpData.filter(r => r.status === 'Pass').length / qcpData.length * 100).toFixed(1);
+  const fails = qcpData.filter(r => r.status !== 'Pass');
+  let html = '<strong>Quality Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">QCP Pass Rate</span><span class="ai-metric-value">' + passRate + '%</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Audits</span><span class="ai-metric-value">' + qcpData.length + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Failed</span><span class="ai-metric-value" style="color:var(--danger)">' + fails.length + '</span></div>';
+  html += '</div>';
+  if (fails.length) {
+    html += '<div class="ai-alert"><div class="alert-title">Failed Audits</div><div class="alert-detail">' + fails.slice(0, 5).map(f => f.machine_name + ' (' + f.sbu + '): ' + f.test_name + ' = ' + f.actual_value + ' (range: ' + f.min_value + '-' + f.max_value + ')').join('<br>') + '</div></div>';
+  }
+  addAIMessage(html);
+}
+
+function analyzeProblemQuery() {
+  const ps = sbuFilter(monthFilterByDate(allData.problemSolving, 'log_date'));
+  if (!ps.length) { addAIMessage('No problem solving data for this period.'); return; }
+  const open = ps.filter(p => p.status === 'open');
+  const critical = ps.filter(p => p.priority === 'critical');
+  let html = '<strong>Problem Solving Analysis</strong><br>';
+  html += '<div class="ai-summary">';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Total Issues</span><span class="ai-metric-value">' + ps.length + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Open</span><span class="ai-metric-value" style="color:var(--warning)">' + open.length + '</span></div>';
+  html += '<div class="ai-metric"><span class="ai-metric-label">Critical</span><span class="ai-metric-value" style="color:var(--danger)">' + critical.length + '</span></div>';
+  html += '</div>';
+  if (critical.length) {
+    html += '<div class="ai-alert"><div class="alert-title">Critical Issues</div><div class="alert-detail">' + critical.map(c => c.problem.substring(0, 80) + ' (' + c.sbu + ')').join('<br>') + '</div></div>';
+  }
+  addAIMessage(html);
+}
+
+function runAIAnalysis() {
+  addAIMessage('Analyzing performance data for <strong>' + currentMonth + ' ' + currentYear + '</strong>...');
+  setTimeout(() => {
+    const alerts = [];
+    const oeeData = sbuFilter(monthFilterByDate(allData.oee, 'production_date'));
+    const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
+    const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+    const consBreakdown = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date'));
+    const problemSolving = sbuFilter(monthFilterByDate(allData.problemSolving, 'log_date'));
+    const prodData = sbuFilter(monthFilterByDate(allData.oeePacing, 'production_date'));
+    const qcpData = sbuFilter(monthFilterByDate(allData.qcpAudit, 'audit_date'));
+    const monthlyKey = currentYear + '-' + String(MONTHS.indexOf(currentMonth) + 1).padStart(2, '0');
+    const costSavings = sbuFilter(monthFilterByMonthlyValues(allData.costSavings));
+    const totalSavings = sum(costSavings.map(r => r.monthly_values?.[monthlyKey] || 0));
+
+    if (oeeData.length) {
+      const avgOee = avg(oeeData.map(r => r.oee_pct));
+      if (avgOee < 0.5) alerts.push({ type: 'alert', title: 'Low OEE', detail: 'Average OEE is ' + (avgOee * 100).toFixed(1) + '% — well below target. Investigate availability and performance losses.' });
+      else if (avgOee < 0.7) alerts.push({ type: 'warn', title: 'OEE Below Target', detail: 'Average OEE at ' + (avgOee * 100).toFixed(1) + '%. Focus on reducing minor stops and improving cycle times.' });
+      else alerts.push({ type: 'ok', title: 'OEE On Track', detail: 'Average OEE at ' + (avgOee * 100).toFixed(1) + '% — performing well.' });
+    }
+
+    if (fiveS.length) {
+      const avg5S = avg(fiveS.map(r => r.final_score_pct));
+      if (avg5S < 50) alerts.push({ type: 'alert', title: '5S Score Critical', detail: 'Average 5S score: ' + avg5S.toFixed(1) + '%. Immediate corrective action required.' });
+      else if (avg5S < 70) alerts.push({ type: 'warn', title: '5S Improvement Needed', detail: 'Average 5S score: ' + avg5S.toFixed(1) + '%. Target should be 70%+.' });
+    }
+
+    if (breakdown.length || consBreakdown.length) {
+      const total = breakdown.length + consBreakdown.length;
+      const totalDT = sum(breakdown.map(r => r.downtime || 0)) + sum(consBreakdown.map(r => r.downtime || 0));
+      if (total > 50) alerts.push({ type: 'alert', title: 'High Breakdown Frequency', detail: total + ' breakdowns this month, ' + (totalDT / 60).toFixed(1) + ' hours downtime. Review maintenance schedule.' });
+      else alerts.push({ type: 'ok', title: 'Breakdowns Managed', detail: total + ' breakdowns, ' + (totalDT / 60).toFixed(1) + ' hours downtime.' });
+    }
+
+    if (problemSolving.length) {
+      const open = problemSolving.filter(p => p.status === 'open');
+      if (open.length) alerts.push({ type: 'warn', title: 'Open Issues', detail: open.length + ' unresolved problem solving cards. ' + open.filter(p => p.priority === 'critical').length + ' are critical.' });
+    }
+
+    if (qcpData.length) {
+      const passRate = (qcpData.filter(r => r.status === 'Pass').length / qcpData.length * 100).toFixed(1);
+      if (parseFloat(passRate) < 90) alerts.push({ type: 'alert', title: 'Quality Alert', detail: 'QCP pass rate: ' + passRate + '%. Below 90% threshold.' });
+    }
+
+    if (totalSavings === 0) alerts.push({ type: 'warn', title: 'No Cost Savings', detail: 'No cost savings recorded this month. Review improvement pipeline.' });
+
+    let html = '<div class="ai-summary"><h4>Performance Summary — ' + currentMonth + ' ' + currentYear + '</h4></div>';
+    alerts.forEach(a => {
+      html += '<div class="ai-' + a.type + '"><div class="alert-title">' + a.title + '</div><div class="alert-detail">' + a.detail + '</div></div>';
+    });
+    addAIMessage(html);
+    addAISuggestions(['OEE Analysis', '5S Scores', 'Breakdowns', 'Cost Savings', 'Production', 'Quality', 'Open Issues']);
+  }, 1200);
 }
 
 // Initialize
