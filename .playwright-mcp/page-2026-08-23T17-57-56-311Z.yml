@@ -1,0 +1,39 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - heading "Akij Resource OPEX Dashboard" [level=1] [ref=f5e3]
+    - generic [ref=f5e4]:
+      - generic [ref=f5e5]: Loading...
+      - button "Refresh" [ref=f5e6] [cursor=pointer]
+  - generic [ref=f5e7]:
+    - generic [ref=f5e8]:
+      - generic [ref=f5e9]: "SBU:"
+      - combobox [ref=f5e10]:
+        - option "All SBUs" [selected]
+        - option "ACCL"
+        - option "APFIL"
+        - option "AAFL"
+        - option "AIL"
+        - option "MRML"
+        - option "FLOUE AND DAL"
+    - generic [ref=f5e11]:
+      - generic [ref=f5e12]: "Month:"
+      - combobox [ref=f5e13]:
+        - option "January"
+        - option "February"
+        - option "March"
+        - option "April"
+        - option "May"
+        - option "June"
+        - option "July"
+        - option "August" [selected]
+        - option "September"
+        - option "October"
+        - option "November"
+        - option "December"
+    - generic [ref=f5e14]:
+      - generic [ref=f5e15]: "Year:"
+      - combobox [ref=f5e16]:
+        - option "2026" [selected]
+        - option "2025"
+        - option "2024"
+    - button "Apply Filters" [ref=f5e17] [cursor=pointer]

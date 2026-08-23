@@ -1,0 +1,90 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - heading "Akij Resource OPEX Dashboard" [level=1] [ref=f5e3]
+    - generic [ref=f5e4]:
+      - generic [ref=f5e5]: "Updated: 11:58:02 PM"
+      - button "Refresh" [ref=f5e6] [cursor=pointer]
+  - generic [ref=f5e7]:
+    - generic [ref=f5e8]:
+      - generic [ref=f5e9]: "SBU:"
+      - combobox [ref=f5e10]:
+        - option "All SBUs" [selected]
+        - option "ACCL"
+        - option "APFIL"
+        - option "AAFL"
+        - option "AIL"
+        - option "MRML"
+        - option "FLOUE AND DAL"
+    - generic [ref=f5e11]:
+      - generic [ref=f5e12]: "Month:"
+      - combobox [ref=f5e13]:
+        - option "January"
+        - option "February"
+        - option "March"
+        - option "April"
+        - option "May"
+        - option "June"
+        - option "July"
+        - option "August" [selected]
+        - option "September"
+        - option "October"
+        - option "November"
+        - option "December"
+    - generic [ref=f5e14]:
+      - generic [ref=f5e15]: "Year:"
+      - combobox [ref=f5e16]:
+        - option "2026" [selected]
+        - option "2025"
+        - option "2024"
+    - button "Apply Filters" [ref=f5e17] [cursor=pointer]
+  - generic [ref=f5e21]:
+    - generic [ref=f5e22]:
+      - button "Overview" [ref=f5e23] [cursor=pointer]
+      - button "OEE" [ref=f5e24] [cursor=pointer]
+      - button "Production" [ref=f5e25] [cursor=pointer]
+      - button "Improvement & Savings" [ref=f5e26] [cursor=pointer]
+      - button "Quality & 5S" [ref=f5e27] [cursor=pointer]
+      - button "Breakdown" [ref=f5e28] [cursor=pointer]
+      - button "Projects" [ref=f5e29] [cursor=pointer]
+      - button "People & Tasks" [ref=f5e30] [cursor=pointer]
+    - generic [ref=f5e31]:
+      - generic [ref=f5e32]:
+        - generic [ref=f5e33]:
+          - generic [ref=f5e34]: Avg OEE
+          - generic [ref=f5e35]: 27.0%
+          - generic [ref=f5e36]: 263 records this month
+        - generic [ref=f5e37]:
+          - generic [ref=f5e38]: Cost Savings
+          - generic [ref=f5e39]: ৳ 10,500
+          - generic [ref=f5e40]: 1 active cards
+        - generic [ref=f5e41]:
+          - generic [ref=f5e42]: Avg 5S Score
+          - generic [ref=f5e43]: 6437.5%
+          - generic [ref=f5e44]: 80 audits
+        - generic [ref=f5e45]:
+          - generic [ref=f5e46]: Breakdowns
+          - generic [ref=f5e47]: "176"
+          - generic [ref=f5e48]: this month
+        - generic [ref=f5e49]:
+          - generic [ref=f5e50]: Projects
+          - generic [ref=f5e51]: 13/15
+          - generic [ref=f5e52]: completed / total
+        - generic [ref=f5e53]:
+          - generic [ref=f5e54]: Training Sessions
+          - generic [ref=f5e55]: "3"
+          - generic [ref=f5e56]: this month
+        - generic [ref=f5e57]:
+          - generic [ref=f5e58]: Open Issues
+          - generic [ref=f5e59]: "1"
+          - generic [ref=f5e60]: 4 total
+        - generic [ref=f5e61]:
+          - generic [ref=f5e62]: Active Tasks
+          - generic [ref=f5e63]: "0"
+          - generic [ref=f5e64]: 0 total
+      - generic [ref=f5e65]:
+        - heading "Monthly OEE Trend (Selected SBU)" [level=3] [ref=f5e67]
+        - heading "Production vs Capacity" [level=3] [ref=f5e71]
+      - generic [ref=f5e74]:
+        - heading "Cost Savings by Source" [level=3] [ref=f5e76]
+        - heading "5S Audit Scores" [level=3] [ref=f5e80]
+  - generic [ref=f5e83]: Dashboard refreshed

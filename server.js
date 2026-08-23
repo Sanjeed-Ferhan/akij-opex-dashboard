@@ -10,7 +10,7 @@ const mime = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(__dirname, req.url === '/' ? 'opex-dashboard.html' : req.url);
+  let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
   const ext = path.extname(filePath);
   const contentType = mime[ext] || 'application/octet-stream';
   

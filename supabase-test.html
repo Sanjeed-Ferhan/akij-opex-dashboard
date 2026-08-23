@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Supabase Test</title></head><body>
+<h1>Supabase Connection Test</h1>
+<pre id="output">Testing...</pre>
+<script>
+async function test() {
+  const out = document.getElementById('output');
+  try {
+    const res = await fetch('https://vpwbcuxwxkqvauffqooj.supabase.co/rest/v1/oee?limit=2', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2JjdXh3eGtxdmF1ZmZxb29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MjA4NjEsImV4cCI6MjA5OTM5Njg2MX0.iAoIZXl-2G7h3wm4jcYsEs6-wdN-YKTS-KbBteBBzUk',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2JjdXh3eGtxdmF1ZmZxb29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MjA4NjEsImV4cCI6MjA5OTM5Njg2MX0.iAoIZXl-2G7h3wm4jcYsEs6-wdN-YKTS-KbBteBBzUk'
+      }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
+    const data = await res.json();
+    out.textContent = 'SUCCESS! Got ' + data.length + ' rows:\n' + JSON.stringify(data, null, 2);
+  } catch(e) {
+    out.textContent = 'FAILED: ' + e.message;
+  }
+}
+test();
+</script>
+</body></html>

@@ -1,0 +1,7 @@
+[   43187ms] Identifier 'supabase' has already been declared
+[   60415ms] ReferenceError: applyFilters is not defined
+    at HTMLButtonElement.onclick (http://localhost:8080/opex-dashboard.html:143:48)
+[   63099ms] ReferenceError: onFilterChange is not defined
+    at HTMLSelectElement.onchange (http://localhost:8080/opex-dashboard.html:121:56)
+[   64330ms] ReferenceError: refreshAllData is not defined
+    at HTMLButtonElement.onclick (http://localhost:8080/opex-dashboard.html:114:76)
