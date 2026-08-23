@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akij Resource OPEX Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+<style>
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --bg-card-hover: #273548;
+  --border: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+  --purple: #8b5cf6;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+.header { background: linear-gradient(135deg, #1e3a5f, #0f172a); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+.header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-meta { display: flex; align-items: center; gap: 16px; }
+.header-meta span { font-size: 13px; color: var(--text-secondary); }
+.filters { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 12px 32px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-group label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+.filter-group select, .filter-group input { background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+.filter-group select:focus, .filter-group input:focus { border-color: var(--accent); }
+.btn { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.container { padding: 24px 32px; max-width: 100%; }
+.section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.section-title::before { content: ''; width: 3px; height: 18px; background: var(--accent); border-radius: 2px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: all 0.2s; position: relative; overflow: hidden; }
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--accent); }
+.kpi-card .kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.kpi-card .kpi-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.kpi-card .kpi-sub { font-size: 12px; color: var(--text-secondary); }
+.kpi-card .kpi-trend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 12px; }
+.kpi-trend.up { color: var(--success); background: rgba(34,197,94,0.1); }
+.kpi-trend.down { color: var(--danger); background: rgba(239,68,68,0.1); }
+.kpi-trend.neutral { color: var(--text-muted); background: rgba(100,116,139,0.1); }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+.card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text-secondary); }
+.chart-container { position: relative; height: 300px; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; }
+.table-container { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--bg-primary); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0; }
+tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+tbody tr:hover { background: var(--bg-card-hover); }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+.badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+.badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+.badge-info { background: rgba(6,182,212,0.15); color: var(--info); }
+.badge-purple { background: rgba(139,92,246,0.15); color: var(--purple); }
+.progress-bar { width: 100%; height: 6px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.loading { display: flex; align-items: center; justify-content: center; padding: 60px; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; }
+.tab:hover { color: var(--text-primary); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 20px; font-size: 13px; z-index: 1000; box-shadow: var(--shadow); display: none; }
+.toast.show { display: block; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.stat-row:last-child { border-bottom: none; }
+.stat-label { font-size: 13px; color: var(--text-secondary); }
+.stat-value { font-size: 14px; font-weight: 600; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.refresh-btn { position: relative; }
+.refresh-btn.loading .spinner-sm { display: inline-block; }
+.spinner-sm { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; }
+@media (max-width: 768px) {
+  .header { padding: 12px 16px; }
+  .filters { padding: 12px 16px; }
+  .container { padding: 16px; }
+  .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .header h1 { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Akij Resource OPEX Dashboard</h1>
+  <div class="header-meta">
+    <span id="lastUpdated">Loading...</span>
+    <button class="btn btn-outline refresh-btn" onclick="refreshAllData()"><span class="spinner-sm"></span>Refresh</button>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="filter-group">
+    <label>SBU:</label>
+    <select id="sbuFilter" onchange="onFilterChange()">
+      <option value="all">All SBUs</option>
+      <option value="ACCL">ACCL</option>
+      <option value="APFIL">APFIL</option>
+      <option value="AAFL">AAFL</option>
+      <option value="AIL">AIL</option>
+      <option value="MRML">MRML</option>
+      <option value="FLOUE AND DAL">FLOUE AND DAL</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Month:</label>
+    <select id="monthFilter" onchange="onFilterChange()"></select>
+  </div>
+  <div class="filter-group">
+    <label>Year:</label>
+    <select id="yearFilter" onchange="onFilterChange()">
+      <option value="2026" selected>2026</option>
+      <option value="2025">2025</option>
+      <option value="2024">2024</option>
+    </select>
+  </div>
+  <button class="btn" onclick="applyFilters()">Apply Filters</button>
+</div>
+
+<div class="container">
+  <div id="loadingOverlay" class="loading"><div class="spinner"></div></div>
+  <div id="dashboardContent" style="display:none;">
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('overview', this)">Overview</button>
+      <button class="tab" onclick="switchTab('oee', this)">OEE</button>
+      <button class="tab" onclick="switchTab('production', this)">Production</button>
+      <button class="tab" onclick="switchTab('improvement', this)">Improvement & Savings</button>
+      <button class="tab" onclick="switchTab('quality', this)">Quality & 5S</button>
+      <button class="tab" onclick="switchTab('breakdown', this)">Breakdown</button>
+      <button class="tab" onclick="switchTab('projects', this)">Projects</button>
+      <button class="tab" onclick="switchTab('people', this)">People & Tasks</button>
+    </div>
+
+    <div id="tab-overview" class="tab-content active">
+      <div class="kpi-grid" id="kpiGrid"></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Monthly OEE Trend (Selected SBU)</h3>
+          <div class="chart-container"><canvas id="oeeTrendChart"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Production vs Capacity</h3>
+          <div class="chart-container"><canvas id="prodVsCapChart"></canvas></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Cost Savings by Source</h3>
+          <div class="chart-container"><canvas id="savingsChart"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>5S Audit Scores</h3>
+          <div class="chart-container"><canvas id="fiveSChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-oee" class="tab-content">
+      <div class="kpi-grid" id="oeeKpiGrid"></div>
+      <div class="card">
+        <h3>OEE Detail by Date</h3>
+        <div class="chart-container" style="height:350px"><canvas id="oeeDetailChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>OEE Records</h3>
+        <div class="table-container"><table id="oeeTable"><thead><tr><th>Date</th><th>SBU</th><th>OEE %</th><th>Availability</th><th>Performance</th><th>Quality</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="tab-production" class="tab-content">
+      <div class="kpi-grid" id="prodKpiGrid"></div>
+      <div class="card">
+        <h3>Capacity by Machine</h3>
+        <div class="chart-container"><canvas id="capacityChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Daily Production Tracking</h3>
+        <div class="table-container"><table id="productionTable"><thead><tr><th>Date</th><th>SBU</th><th>Capacity</th><th>Production</th><th>Good</th><th>OEE %</th><th>Cap Util %</th><th>Yield %</th><th>NPT %</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="tab-improvement" class="tab-content">
+      <div class="kpi-grid" id="improveKpiGrid"></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Cost Savings (BDT)</h3>
+          <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="costSavingsTable"><thead><tr><th>Card</th><th>Source</th><th>Details</th><th>Section</th><th>SBU</th><th>Total Savings</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3>Productivity Improvement</h3>
+          <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="productivityTable"><thead><tr><th>Card</th><th>Source</th><th>Details</th><th>Section</th><th>UOM</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Time Savings (Minutes)</h3>
+          <div class="table-container" style="max-height:300px;overflow-y:auto"><table id="timeSavingsTable"><thead><tr><th>Card</th><th>Source</th><th>Details</th><th>Section</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3>Environment Impact</h3>
+          <div class="table-container" style="max-height:300px;overflow-y:auto"><table id="envImpactTable"><thead><tr><th>Card</th><th>Source</th><th>Details</th><th>Section</th><th>UOM</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-quality" class="tab-content">
+      <div class="kpi-grid" id="qualityKpiGrid"></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>5S Audit Entries</h3>
+          <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="fiveSTable"><thead><tr><th>Audit #</th><th>SBU</th><th>Place</th><th>Auditor</th><th>Sort</th><th>Order</th><th>Shine</th><th>Std</th><th>Sustain</th><th>Score %</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3>QCP Audit Results</h3>
+          <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="qcpAuditTable"><thead><tr><th>Date</th><th>SBU</th><th>Section</th><th>Machine</th><th>Test</th><th>Actual</th><th>Range</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-breakdown" class="tab-content">
+      <div class="kpi-grid" id="breakdownKpiGrid"></div>
+      <div class="card">
+        <h3>Breakdown Records</h3>
+        <div class="table-container" style="max-height:500px;overflow-y:auto"><table id="breakdownTable"><thead><tr><th>Date</th><th>SBU</th><th>Equipment</th><th>Reason</th><th>Type</th><th>Downtime (min)</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="tab-projects" class="tab-content">
+      <div class="kpi-grid" id="projectKpiGrid"></div>
+      <div class="card">
+        <h3>Active Projects</h3>
+        <div class="table-container" style="max-height:500px;overflow-y:auto"><table id="projectsTable"><thead><tr><th>Project</th><th>SBU</th><th>Start</th><th>End</th><th>Status</th><th>Progress</th><th>Benefits</th><th>Est. Budget</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div id="tab-people" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Training Summary</h3>
+          <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="trainingTable"><thead><tr><th>Training</th><th>SBU</th><th>Type</th><th>Trainees</th><th>Duration</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3>Problem Solving Log</h3>
+          <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="problemSolvingTable"><thead><tr><th>Date</th><th>SBU</th><th>Name</th><th>Problem</th><th>Status</th><th>Priority</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Tasks</h3>
+          <div class="table-container" style="max-height:300px;overflow-y:auto"><table id="tasksTable"><thead><tr><th>Title</th><th>Status</th><th>Priority</th><th>Due</th></tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3>Manpower & OT</h3>
+          <div class="chart-container"><canvas id="manpowerChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SB_URL = 'https://vpwbcuxwxkqvauffqooj.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwd2JjdXh3eGtxdmF1ZmZxb29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM4MjA4NjEsImV4cCI6MjA5OTM5Njg2MX0.iAoIZXl-2G7h3wm4jcYsEs6-wdN-YKTS-KbBteBBzUk';
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+const SBUS = ['ACCL','APFIL','AAFL','AIL','MRML'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let allData = {};
+let charts = {};
+let currentSbu = 'all';
+let currentMonth = '';
+let currentYear = '2026';
+
+function initMonthFilter() {
+  const sel = document.getElementById('monthFilter');
+  const now = new Date();
+  currentMonth = MONTHS[now.getMonth()];
+  sel.innerHTML = '';
+  MONTHS.forEach((m, i) => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    if (m === currentMonth) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function switchTab(tabId, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+function getMonthDateRange(month, year) {
+  const mIdx = MONTHS.indexOf(month);
+  const start = `${year}-${String(mIdx + 1).padStart(2, '0')}-01`;
+  const end = `${year}-${String(mIdx + 1).padStart(2, '0')}-${new Date(year, mIdx + 1, 0).getDate()}`;
+  return { start, end };
+}
+
+function sbuFilter(table) {
+  if (currentSbu !== 'all') return table.filter(r => r.sbu === currentSbu);
+  return table;
+}
+
+function monthFilterByDate(table, dateField) {
+  const { start, end } = getMonthDateRange(currentMonth, currentYear);
+  return table.filter(r => {
+    const d = r[dateField];
+    return d && d >= start && d <= end;
+  });
+}
+
+function monthFilterByMonth(table, monthField) {
+  return table.filter(r => r[monthField] && r[monthField].toLowerCase().includes(currentMonth.substring(0, 3).toLowerCase()));
+}
+
+function monthFilterByMonthlyValues(table) {
+  const key = `${currentYear}-${String(MONTHS.indexOf(currentMonth) + 1).padStart(2, '0')}`;
+  return table.filter(r => {
+    const mv = r.monthly_values;
+    return mv && mv[key] !== null && mv[key] !== undefined;
+  });
+}
+
+function avg(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
+function pct(v) { return (v * 100).toFixed(1); }
+function fmt(v, d=0) { return Number(v).toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d}); }
+function fmtBDT(v) { return '৳ ' + Number(v).toLocaleString('en-US'); }
+function badge(status) {
+  const s = (status || '').toLowerCase();
+  if (['open','todo','pending','behind'].includes(s)) return '<span class="badge badge-warning">' + status + '</span>';
+  if (['completed','done','finalized','pass','ok','closed','complete'].includes(s)) return '<span class="badge badge-success">' + status + '</span>';
+  if (['critical','high'].includes(s)) return '<span class="badge badge-danger">' + status + '</span>';
+  if (['in_progress','in progress'].includes(s)) return '<span class="badge badge-info">' + status + '</span>';
+  return '<span class="badge badge-purple">' + status + '</span>';
+}
+
+async function fetchTable(table, opts = {}) {
+  let query = sb.from(table).select('*');
+  if (opts.limit) query = query.limit(opts.limit);
+  const { data, error } = await query;
+  if (error) { console.warn('Error fetching', table, error); return []; }
+  return data || [];
+}
+
+async function loadAllData() {
+  const lo = document.getElementById('loadingOverlay');
+  lo.style.display = 'flex';
+  document.getElementById('dashboardContent').style.display = 'none';
+
+  allData = {
+    oee: await fetchTable('oee'),
+    oeeProd: await fetchTable('akij_essential_oee_production'),
+    oeePacing: await fetchTable('OEE-Pacing (Accl)'),
+    capacity: await fetchTable('capacity'),
+    costSavings: await fetchTable('accl_cost_savings'),
+    productivity: await fetchTable('accl_productivity_improvement'),
+    timeSavings: await fetchTable('accl_time_savings_min'),
+    envImpact: await fetchTable('accl_environment_impact'),
+    wastageSavings: await fetchTable('accl_wastage_savings_qty'),
+    fiveS: await fetchTable('accl_5s_audit_entries'),
+    qcpAudit: await fetchTable('qcp_audit'),
+    projects: await fetchTable('accl_projects'),
+    breakdown: await fetchTable('Breakdown (Accl)'),
+    consumerBreakdown: await fetchTable('Consumer_Breakdown'),
+    problemSolving: await fetchTable('Problem Solving Log (Accl)'),
+    problemSolvingCards: await fetchTable('accl_problem_solving_cards'),
+    improvementCards: await fetchTable('accl_improvement_cards'),
+    training: await fetchTable('accl_training_provided'),
+    tasks: await fetchTable('tasks'),
+    manpower: await fetchTable('manpower_pacing(Accl)'),
+    otDaily: await fetchTable('OT_daily (Accl)'),
+    otAmount: await fetchTable('Ot amount (Accl)'),
+    qcpSpecs: await fetchTable('qcp_specs'),
+    targetOEE: await fetchTable('target_oee'),
+    kpiTargets: await fetchTable('ACCL_KPI_TARGET'),
+    processStd: await fetchTable('accl_process_standardization'),
+    dailyMeetingTarget: await fetchTable('daily meeting target'),
+  };
+
+  lo.style.display = 'none';
+  document.getElementById('dashboardContent').style.display = 'block';
+  document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+  renderAll();
+  showToast('Dashboard refreshed');
+}
+
+function renderAll() {
+  const s = currentSbu;
+  const m = currentMonth;
+  const y = currentYear;
+
+  // Overview KPIs
+  const oeeData = sbuFilter(monthFilterByDate(allData.oee, 'production_date'));
+  const oeePacing = sbuFilter(monthFilterByDate(allData.oeePacing, 'production_date'));
+  const costSavings = sbuFilter(monthFilterByMonthlyValues(allData.costSavings));
+  const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
+  const projects = sbuFilter(allData.projects);
+  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+  const training = sbuFilter(monthFilterByDate(allData.training, 'completion_date'));
+  const problemSolving = sbuFilter(monthFilterByDate(allData.problemSolving, 'log_date'));
+
+  const avgOee = avg(oeeData.map(r => r.oee_pct));
+  const totalSavings = sum(costSavings.map(r => {
+    const key = `${y}-${String(MONTHS.indexOf(m) + 1).padStart(2, '0')}`;
+    return r.monthly_values?.[key] || 0;
+  }));
+  const avgFiveS = avg(fiveS.map(r => r.final_score_pct));
+  const totalBreakdowns = breakdown.length;
+  const totalProjects = projects.length;
+  const completedProjects = projects.filter(p => p.status === 'finalized').length;
+  const trainingsCount = training.length;
+  const openIssues = problemSolving.filter(p => p.status === 'open').length;
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Avg OEE</div><div class="kpi-value">${avgOee > 0 ? pct(avgOee) + '%' : 'N/A'}</div><div class="kpi-sub">${oeeData.length} records this month</div></div>
+    <div class="kpi-card"><div class="kpi-label">Cost Savings</div><div class="kpi-value">${fmtBDT(totalSavings)}</div><div class="kpi-sub">${costSavings.length} active cards</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg 5S Score</div><div class="kpi-value">${avgFiveS > 0 ? avgFiveS.toFixed(1) + '%' : 'N/A'}</div><div class="kpi-sub">${fiveS.length} audits</div></div>
+    <div class="kpi-card"><div class="kpi-label">Breakdowns</div><div class="kpi-value">${totalBreakdowns}</div><div class="kpi-sub">this month</div></div>
+    <div class="kpi-card"><div class="kpi-label">Projects</div><div class="kpi-value">${completedProjects}/${totalProjects}</div><div class="kpi-sub">completed / total</div></div>
+    <div class="kpi-card"><div class="kpi-label">Training Sessions</div><div class="kpi-value">${trainingsCount}</div><div class="kpi-sub">this month</div></div>
+    <div class="kpi-card"><div class="kpi-label">Open Issues</div><div class="kpi-value">${openIssues}</div><div class="kpi-sub">${problemSolving.length} total</div></div>
+    <div class="kpi-card"><div class="kpi-label">Active Tasks</div><div class="kpi-value">${allData.tasks.filter(t => t.status !== 'done').length}</div><div class="kpi-sub">${allData.tasks.length} total</div></div>
+  `;
+
+  // OEE KPIs
+  const avgAvail = avg(oeeData.map(r => r.availability_pct));
+  const avgPerf = avg(oeeData.map(r => r.performance_pct));
+  const avgQual = avg(oeeData.map(r => r.quality_pct));
+  document.getElementById('oeeKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">OEE</div><div class="kpi-value">${avgOee > 0 ? pct(avgOee) + '%' : 'N/A'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Availability</div><div class="kpi-value">${avgAvail > 0 ? pct(avgAvail) + '%' : 'N/A'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Performance</div><div class="kpi-value">${avgPerf > 0 ? pct(avgPerf) + '%' : 'N/A'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Quality</div><div class="kpi-value">${avgQual > 0 ? pct(avgQual) + '%' : 'N/A'}</div></div>
+  `;
+
+  // OEE Table
+  const oeeTbody = document.querySelector('#oeeTable tbody');
+  oeeTbody.innerHTML = oeeData.slice(0, 100).map(r => `
+    <tr><td>${r.production_date}</td><td>${r.sbu}</td><td>${pct(r.oee_pct)}%</td><td>${pct(r.availability_pct)}%</td><td>${pct(r.performance_pct)}%</td><td>${pct(r.quality_pct)}%</td></tr>
+  `).join('');
+
+  // Production KPIs
+  const prodData = sbuFilter(monthFilterByDate(allData.oeePacing, 'production_date'));
+  const avgCapUtil = avg(prodData.map(r => r.capacity_utilization));
+  const avgYield = avg(prodData.map(r => r.yield_pct));
+  const totalProd = sum(prodData.map(r => r.total_production || 0));
+  document.getElementById('prodKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Total Production</div><div class="kpi-value">${fmt(totalProd)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Cap. Utilization</div><div class="kpi-value">${avgCapUtil > 0 ? avgCapUtil.toFixed(1) + '%' : 'N/A'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Yield</div><div class="kpi-value">${avgYield > 0 ? avgYield.toFixed(1) + '%' : 'N/A'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Machines</div><div class="kpi-value">${allData.capacity.length}</div></div>
+  `;
+
+  // Production Table
+  const prodTbody = document.querySelector('#productionTable tbody');
+  prodTbody.innerHTML = prodData.slice(0, 100).map(r => `
+    <tr><td>${r.production_date}</td><td>${r.sbu}</td><td>${fmt(r.shift_capacity)}</td><td>${fmt(r.total_production)}</td><td>${fmt(r.good_production)}</td><td>${pct(r.oee_pct)}%</td><td>${r.capacity_utilization !== null && r.capacity_utilization !== undefined ? r.capacity_utilization.toFixed(1) + '%' : '-'}</td><td>${r.yield_pct !== null && r.yield_pct !== undefined ? r.yield_pct.toFixed(1) + '%' : '-'}</td><td>${r.npt_pct !== null ? pct(r.npt_pct) + '%' : '-'}</td></tr>
+  `).join('');
+
+  // Improvement KPIs
+  const monthlyKey = `${y}-${String(MONTHS.indexOf(m) + 1).padStart(2, '0')}`;
+  const monthlyProdSavings = sum(sbuFilter(allData.productivity).map(r => r.monthly_values?.[monthlyKey] || 0));
+  const monthlyTimeSavings = sum(sbuFilter(allData.timeSavings).map(r => r.monthly_values?.[monthlyKey] || 0));
+  document.getElementById('improveKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Monthly Cost Savings</div><div class="kpi-value">${fmtBDT(totalSavings)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Monthly Prod. Value</div><div class="kpi-value">${fmt(monthlyProdSavings)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Monthly Time Saved</div><div class="kpi-value">${fmt(monthlyTimeSavings)} min</div></div>
+    <div class="kpi-card"><div class="kpi-label">Improvement Cards</div><div class="kpi-value">${sbuFilter(allData.improvementCards).length}</div></div>
+  `;
+
+  // Cost Savings Table
+  const csTbody = document.querySelector('#costSavingsTable tbody');
+  csTbody.innerHTML = sbuFilter(allData.costSavings).filter(r => r.total_savings_bdt).sort((a,b) => b.total_savings_bdt - a.total_savings_bdt).slice(0, 50).map(r => `
+    <tr><td>${r.card_no}</td><td>${r.source}</td><td>${(r.project_details || '').substring(0, 60)}...</td><td>${r.section}</td><td>${r.sbu}</td><td>${fmtBDT(r.total_savings_bdt)}</td></tr>
+  `).join('');
+
+  // Productivity Table
+  const ptTbody = document.querySelector('#productivityTable tbody');
+  ptTbody.innerHTML = sbuFilter(allData.productivity).slice(0, 50).map(r => `
+    <tr><td>${r.card_no}</td><td>${r.source}</td><td>${(r.project_details || '').substring(0, 50)}...</td><td>${r.section}</td><td>${r.uom}</td></tr>
+  `).join('');
+
+  // Time Savings Table
+  const tsTbody = document.querySelector('#timeSavingsTable tbody');
+  tsTbody.innerHTML = sbuFilter(allData.timeSavings).slice(0, 50).map(r => `
+    <tr><td>${r.card_no}</td><td>${r.source}</td><td>${(r.project_details || '').substring(0, 50)}...</td><td>${r.section}</td></tr>
+  `).join('');
+
+  // Env Impact Table
+  const eiTbody = document.querySelector('#envImpactTable tbody');
+  eiTbody.innerHTML = sbuFilter(allData.envImpact).slice(0, 50).map(r => `
+    <tr><td>${r.card_no}</td><td>${r.source}</td><td>${(r.project_details || '').substring(0, 50)}...</td><td>${r.section}</td><td>${r.uom}</td></tr>
+  `).join('');
+
+  // Quality KPIs
+  const qcpData = sbuFilter(monthFilterByDate(allData.qcpAudit, 'audit_date'));
+  const passRate = qcpData.length ? (qcpData.filter(r => r.status === 'Pass').length / qcpData.length * 100).toFixed(1) : 'N/A';
+  document.getElementById('qualityKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">5S Audits</div><div class="kpi-value">${fiveS.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg 5S Score</div><div class="kpi-value">${avgFiveS > 0 ? avgFiveS.toFixed(1) + '%' : 'N/A'}</div></div>
+    <div class="kpi-card"><div class="kpi-label">QCP Audits</div><div class="kpi-value">${qcpData.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">QCP Pass Rate</div><div class="kpi-value">${passRate}${passRate !== 'N/A' ? '%' : ''}</div></div>
+  `;
+
+  // 5S Table
+  const fiveSTbody = document.querySelector('#fiveSTable tbody');
+  fiveSTbody.innerHTML = fiveS.slice(0, 100).map(r => `
+    <tr><td>${r.audit_no}</td><td>${r.sbu}</td><td>${r.audit_place}</td><td>${r.auditor_name}</td><td>${r.sort_removed}</td><td>${r.order_location}</td><td>${r.shine_clean}</td><td>${r.standardize}</td><td>${r.sustain}</td><td>${r.final_score_pct}%</td></tr>
+  `).join('');
+
+  // QCP Audit Table
+  const qcpTbody = document.querySelector('#qcpAuditTable tbody');
+  qcpTbody.innerHTML = qcpData.slice(0, 100).map(r => `
+    <tr><td>${r.audit_date}</td><td>${r.sbu}</td><td>${r.section}</td><td>${r.machine_name}</td><td>${r.test_name}</td><td>${r.actual_value}</td><td>${r.min_value} - ${r.max_value}</td><td>${badge(r.status)}</td></tr>
+  `).join('');
+
+  // Breakdown KPIs
+  const totalDowntime = sum(breakdown.map(r => r.downtime || 0));
+  const consBreakdown = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date'));
+  const totalConsDowntime = sum(consBreakdown.map(r => r.downtime || 0));
+  document.getElementById('breakdownKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Breakdowns</div><div class="kpi-value">${totalBreakdowns}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Downtime</div><div class="kpi-value">${fmt(totalDowntime)} min</div></div>
+    <div class="kpi-card"><div class="kpi-label">Consumer Breakdowns</div><div class="kpi-value">${consBreakdown.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Consumer Downtime</div><div class="kpi-value">${fmt(totalConsDowntime)} min</div></div>
+  `;
+
+  // Breakdown Table
+  const brTbody = document.querySelector('#breakdownTable tbody');
+  const allBreakdowns = [...breakdown.map(r => ({...r, breakdown_type: r.breakdown_type || 'N/A'})), ...consBreakdown.map(r => ({...r, breakdown_type: r.breakdown_type || 'N/A'}))].sort((a,b) => (b.downtime||0) - (a.downtime||0)).slice(0, 100);
+  brTbody.innerHTML = allBreakdowns.map(r => `
+    <tr><td>${r.breakdown_date || r.data || '-'}</td><td>${r.sbu}</td><td>${r.breakdown_name}</td><td>${r.breakdown_reason}</td><td>${r.breakdown_type}</td><td>${fmt(r.downtime)}</td></tr>
+  `).join('');
+
+  // Project KPIs
+  const activeProjects = projects.filter(p => p.status !== 'finalized').length;
+  const budgetUsed = sum(projects.map(p => p.actual_budget || 0));
+  document.getElementById('projectKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Total Projects</div><div class="kpi-value">${totalProjects}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Active</div><div class="kpi-value">${activeProjects}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Completed</div><div class="kpi-value">${completedProjects}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Process Standards</div><div class="kpi-value">${sbuFilter(allData.processStd).length}</div></div>
+  `;
+
+  // Projects Table
+  const projTbody = document.querySelector('#projectsTable tbody');
+  projTbody.innerHTML = projects.slice(0, 100).map(r => `
+    <tr><td>${r.project_name}</td><td>${r.sbu}</td><td>${r.start_date}</td><td>${r.end_date}</td><td>${badge(r.status)}</td><td><div class="progress-bar"><div class="progress-bar-fill" style="width:${r.progress || 0}%;background:${(r.progress||0) >= 100 ? 'var(--success)' : 'var(--accent)'}"></div></div><span style="font-size:11px;color:var(--text-secondary)">${r.progress || 0}%</span></td><td>${(r.benefits || '').substring(0, 60)}...</td><td>${r.estimated_budget ? fmtBDT(r.estimated_budget) : '-'}</td></tr>
+  `).join('');
+
+  // Training Table
+  const trTbody = document.querySelector('#trainingTable tbody');
+  trTbody.innerHTML = training.slice(0, 50).map(r => `
+    <tr><td>${r.training_name}</td><td>${r.sbu}</td><td>${r.training_type}</td><td>${r.no_of_trainees}</td><td>${r.training_duration_min} min</td><td>${badge(r.status)}</td></tr>
+  `).join('');
+
+  // Problem Solving Table
+  const psTbody = document.querySelector('#problemSolvingTable tbody');
+  psTbody.innerHTML = problemSolving.slice(0, 50).map(r => `
+    <tr><td>${r.log_date}</td><td>${r.sbu}</td><td>${r.name}</td><td>${(r.problem || '').substring(0, 60)}...</td><td>${badge(r.status)}</td><td>${badge(r.priority)}</td></tr>
+  `).join('');
+
+  // Tasks Table
+  const taskTbody = document.querySelector('#tasksTable tbody');
+  taskTbody.innerHTML = allData.tasks.slice(0, 50).map(r => `
+    <tr><td>${r.title}</td><td>${badge(r.status)}</td><td>${badge(r.priority)}</td><td>${r.due_date || '-'}</td></tr>
+  `).join('');
+
+  renderCharts();
+}
+
+function renderCharts() {
+  // Destroy existing charts
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  const oeeData = sbuFilter(monthFilterByDate(allData.oee, 'production_date'));
+  const oeePacing = sbuFilter(monthFilterByDate(allData.oeePacing, 'production_date'));
+  const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
+  const costSavings = sbuFilter(monthFilterByMonthlyValues(allData.costSavings));
+  const monthlyKey = `${currentYear}-${String(MONTHS.indexOf(currentMonth) + 1).padStart(2, '0')}`;
+  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+  const manpower = sbuFilter(monthFilterByDate(allData.manpower, 'manpower_date'));
+
+  const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+    scales: {
+      x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' } },
+      y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' } }
+    }
+  };
+
+  // OEE Trend Chart
+  if (oeeData.length) {
+    const dates = [...new Set(oeeData.map(r => r.production_date))].sort();
+    charts.oeeTrend = new Chart(document.getElementById('oeeTrendChart'), {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'OEE %',
+          data: dates.map(d => {
+            const vals = oeeData.filter(r => r.production_date === d).map(r => r.oee_pct);
+            return avg(vals) * 100;
+          }),
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
+    });
+  }
+
+  // Production vs Capacity
+  if (oeePacing.length) {
+    const dates = [...new Set(oeePacing.map(r => r.production_date))].sort().slice(-14);
+    charts.prodVsCap = new Chart(document.getElementById('prodVsCapChart'), {
+      type: 'bar',
+      data: {
+        labels: dates,
+        datasets: [
+          { label: 'Capacity', data: dates.map(d => { const vals = oeePacing.filter(r => r.production_date === d); return avg(vals.map(r => r.shift_capacity)); }), backgroundColor: 'rgba(139,92,246,0.5)' },
+          { label: 'Production', data: dates.map(d => { const vals = oeePacing.filter(r => r.production_date === d); return avg(vals.map(r => r.total_production)); }), backgroundColor: 'rgba(59,130,246,0.5)' }
+        ]
+      },
+      options: chartDefaults
+    });
+  }
+
+  // Savings by Source
+  if (costSavings.length) {
+    const sources = {};
+    costSavings.forEach(r => {
+      const src = r.source;
+      sources[src] = (sources[src] || 0) + (r.monthly_values?.[monthlyKey] || 0);
+    });
+    const colors = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+    charts.savings = new Chart(document.getElementById('savingsChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(sources),
+        datasets: [{ data: Object.values(sources), backgroundColor: colors.slice(0, Object.keys(sources).length) }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } } }
+    });
+  }
+
+  // 5S Chart
+  if (fiveS.length) {
+    const auditors = [...new Set(fiveS.map(r => r.auditor_name))].slice(0, 10);
+    charts.fiveS = new Chart(document.getElementById('fiveSChart'), {
+      type: 'bar',
+      data: {
+        labels: auditors,
+        datasets: [{
+          label: '5S Score %',
+          data: auditors.map(a => avg(fiveS.filter(r => r.auditor_name === a).map(r => r.final_score_pct))),
+          backgroundColor: auditors.map((_, i) => ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#6366f1'][i % 10])
+        }]
+      },
+      options: { ...chartDefaults, indexAxis: 'y' }
+    });
+  }
+
+  // OEE Detail (stacked)
+  if (oeeData.length) {
+    const dates = [...new Set(oeeData.map(r => r.production_date))].sort().slice(-14);
+    charts.oeeDetail = new Chart(document.getElementById('oeeDetailChart'), {
+      type: 'bar',
+      data: {
+        labels: dates,
+        datasets: [
+          { label: 'Availability', data: dates.map(d => avg(oeeData.filter(r => r.production_date === d).map(r => r.availability_pct)) * 100), backgroundColor: 'rgba(59,130,246,0.6)' },
+          { label: 'Performance', data: dates.map(d => avg(oeeData.filter(r => r.production_date === d).map(r => r.performance_pct)) * 100), backgroundColor: 'rgba(34,197,94,0.6)' },
+          { label: 'Quality', data: dates.map(d => avg(oeeData.filter(r => r.production_date === d).map(r => r.quality_pct)) * 100), backgroundColor: 'rgba(245,158,11,0.6)' }
+        ]
+      },
+      options: { ...chartDefaults, scales: { ...chartDefaults.scales, x: { ...chartDefaults.scales.x, stacked: true }, y: { ...chartDefaults.scales.y, stacked: true, max: 100 } } }
+    });
+  }
+
+  // Capacity Chart
+  const capData = currentSbu !== 'all' ? allData.capacity.filter(r => r.sbu === currentSbu) : allData.capacity;
+  if (capData.length) {
+    charts.capacity = new Chart(document.getElementById('capacityChart'), {
+      type: 'bar',
+      data: {
+        labels: capData.map(r => r.machine).slice(0, 15),
+        datasets: [
+          { label: 'Design', data: capData.map(r => r.design_capacity).slice(0, 15), backgroundColor: 'rgba(139,92,246,0.5)' },
+          { label: 'Workable', data: capData.map(r => r.workable_capacity).slice(0, 15), backgroundColor: 'rgba(59,130,246,0.5)' },
+          { label: 'Actual', data: capData.map(r => r.actual_capacity).slice(0, 15), backgroundColor: 'rgba(34,197,94,0.5)' }
+        ]
+      },
+      options: chartDefaults
+    });
+  }
+
+  // Manpower Chart
+  if (manpower.length) {
+    const mpDates = [...new Set(manpower.map(r => r.manpower_date))].sort().slice(-14);
+    const sbuList = [...new Set(manpower.map(r => r.sbu))];
+    const datasets = sbuList.slice(0, 4).map((sbu, i) => ({
+      label: sbu,
+      data: mpDates.map(d => { const recs = manpower.filter(r => r.manpower_date === d && r.sbu === sbu); return recs.length ? avg(recs.map(r => r.manpower_count)) : 0; }),
+      borderColor: ['#3b82f6','#22c55e','#f59e0b','#ef4444'][i],
+      tension: 0.3
+    }));
+    charts.manpower = new Chart(document.getElementById('manpowerChart'), {
+      type: 'line',
+      data: { labels: mpDates, datasets },
+      options: chartDefaults
+    });
+  }
+}
+
+function onFilterChange() {
+  currentSbu = document.getElementById('sbuFilter').value;
+  currentMonth = document.getElementById('monthFilter').value;
+  currentYear = document.getElementById('yearFilter').value;
+}
+
+function applyFilters() {
+  renderAll();
+}
+
+function refreshAllData() {
+  const btn = document.querySelector('.refresh-btn');
+  btn.classList.add('loading');
+  loadAllData().finally(() => btn.classList.remove('loading'));
+}
+
+// Initialize
+initMonthFilter();
+loadAllData();
+</script>
+</body>
+</html>
