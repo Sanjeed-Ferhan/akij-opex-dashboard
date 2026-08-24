@@ -243,8 +243,8 @@ tbody tr:hover { background: var(--bg-card-hover); }
     <div id="tab-production" class="tab-content">
       <div class="kpi-grid" id="prodKpiGrid"></div>
       <div class="card">
-        <h3>Capacity by Machine</h3>
-        <div class="chart-container"><canvas id="capacityChart"></canvas></div>
+        <h3>Date-wise Production</h3>
+        <div class="chart-container"><canvas id="dailyProdChart"></canvas></div>
       </div>
       <div class="card">
         <h3>Daily Production Tracking</h3>
@@ -783,19 +783,22 @@ function renderCharts() {
     });
   }
 
-  // Capacity Chart
-  const capData = currentSbu !== 'all' ? allData.capacity.filter(r => r.sbu === currentSbu) : allData.capacity;
-  if (capData.length) {
-    charts.capacity = new Chart(document.getElementById('capacityChart'), {
-      type: 'bar',
-      data: {
-        labels: capData.map(r => r.machine).slice(0, 15),
-        datasets: [
-          { label: 'Design', data: capData.map(r => r.design_capacity).slice(0, 15), backgroundColor: 'rgba(139,92,246,0.5)' },
-          { label: 'Workable', data: capData.map(r => r.workable_capacity).slice(0, 15), backgroundColor: 'rgba(59,130,246,0.5)' },
-          { label: 'Actual', data: capData.map(r => r.actual_capacity).slice(0, 15), backgroundColor: 'rgba(34,197,94,0.5)' }
-        ]
-      },
+  // Date-wise Production Chart
+  if (oeePacing.length) {
+    const dates = [...new Set(oeePacing.map(r => r.production_date))].sort();
+    const sbuList = currentSbu !== 'all' ? [currentSbu] : [...new Set(oeePacing.map(r => r.sbu))].slice(0, 6);
+    const colors = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4'];
+    const datasets = sbuList.map((sbu, i) => ({
+      label: sbu,
+      data: dates.map(d => { const recs = oeePacing.filter(r => r.production_date === d && r.sbu === sbu); return recs.length ? avg(recs.map(r => r.total_production || 0)) : 0; }),
+      borderColor: colors[i % colors.length],
+      backgroundColor: 'transparent',
+      tension: 0.3,
+      pointRadius: 3
+    }));
+    charts.dailyProd = new Chart(document.getElementById('dailyProdChart'), {
+      type: 'line',
+      data: { labels: dates, datasets },
       options: chartDefaults
     });
   }
