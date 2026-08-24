@@ -1,0 +1,78 @@
+# Akij Resource OPEX Dashboard (PostgreSQL)
+
+A comprehensive OPEX dashboard for Akij Resource, backed by the **ArlOpexDB** PostgreSQL database (Azure Flexible Server). The dashboard mirrors the design and tabs of the original Supabase dashboard but reads all data through a Vercel serverless API that queries PostgreSQL.
+
+## Tabs
+
+- **Overview** — KPI cards (avg OEE target, total cost savings, capacity utilization, QCP pass rate, 4H tracking, improvement cards, meetings) plus charts for OEE trend, capacity, savings by source, and 4H tracking.
+- **OEE** — Monthly OEE targets per SBU (FY 2026-27) with baseline / target comparison.
+- **Capacity** — Design vs Workable vs Actual capacity per machine with utilization %.
+- **Production** — 4-Hour tracking target vs actual vs gap.
+- **Improvement & Savings** — Cost savings, improvement cards, productivity improvement, problem solving cards, process standardization, environment impact.
+- **Quality & 5S** — QCP audit results, QCP specs, pass rate by SBU, 5S audit entries.
+- **Meetings** — Daily meeting form and daily meeting targets.
+- **People & Tasks** — Tasks, task updates, problem solving log.
+
+## Architecture
+
+```
+browser ──> dashboard.html ──fetch──> /api/data?table=<name>  (Vercel serverless function)
+                                         │
+                                         └──> PostgreSQL (ArlOpexDB) via `pg`
+```
+
+- `dashboard.html` — single-file frontend (Chart.js via CDN), no build step.
+- `api/data.js` — Vercel serverless function. Whitelists 18 tables; rejects anything else.
+- `vercel.json` — routes `/api/*` to the function and `/*` to `dashboard.html`.
+- `index.html` — original Supabase-based dashboard (kept for reference).
+- `db-connect.js`, `upload-tables.js` — local DB tooling used during migration.
+
+## Required environment variables
+
+Set these in Vercel (Project → Settings → Environment Variables), and locally via `.env` / your shell for `vercel dev`:
+
+```
+PGHOST=arl-community-developer.postgres.database.azure.com
+PGPORT=5432
+PGDATABASE=ArlOpexDB
+PGUSER=deputy.coo@akijresource.com
+PGPASSWORD=<your-password>
+```
+
+## Local development
+
+With the Vercel CLI installed:
+
+```bash
+vercel dev
+```
+
+Then open `http://localhost:3000`.
+
+## Deploy
+
+```bash
+vercel --prod
+```
+
+## Table reference
+
+| Table | Contents |
+|-------|----------|
+| `target_oee` | Monthly OEE targets per SBU |
+| `capacity` | Design / workable / actual capacity |
+| `cost_savings` | Cost savings cards (BDT) |
+| `productivity_improvement` | Productivity cards |
+| `environment_impact` | Environment impact cards |
+| `four_hour_tracking` | 4-hour production tracking |
+| `improvement_cards` | Improvement / Kaizen cards |
+| `problem_solving_cards` | Problem solving cards |
+| `process_standardization` | Process standardization projects |
+| `qcp_audit` | Quality control audit records |
+| `qcp_specs` | QC specifications |
+| `accl_5s_audit_entries` | 5S audit entries |
+| `daily_meeting_form` | Daily meeting submissions |
+| `daily_meeting_target` | Daily meeting targets |
+| `tasks` | Task management |
+| `task_updates` | Task status updates |
+| `problem_solving_log` | Problem solving log |
