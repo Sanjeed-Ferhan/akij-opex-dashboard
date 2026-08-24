@@ -614,12 +614,14 @@ function renderAll() {
   `).join('');
 
   // Breakdown KPIs
+  const totalDowntime = sum(breakdown.map(r => r.downtime || 0));
   const consBreakdown = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date')).filter(r => (r.breakdown_type || '').toLowerCase() !== 'planned down time');
-  const totalBreakdowns = breakdown.length + consBreakdown.length;
-  const totalDowntime = sum(breakdown.map(r => r.downtime || 0)) + sum(consBreakdown.map(r => r.downtime || 0));
+  const totalConsDowntime = sum(consBreakdown.map(r => r.downtime || 0));
   document.getElementById('breakdownKpiGrid').innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Breakdowns</div><div class="kpi-value">${totalBreakdowns}</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Downtime</div><div class="kpi-value">${fmt(totalDowntime)} min</div></div>
+    <div class="kpi-card"><div class="kpi-label">Consumer Breakdowns</div><div class="kpi-value">${consBreakdown.length}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Consumer Downtime</div><div class="kpi-value">${fmt(totalConsDowntime)} min</div></div>
   `;
 
   // Breakdown Table
@@ -966,7 +968,7 @@ function analyze5SQuery() {
 
 function analyzeBreakdownQuery() {
   const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date')).filter(r => (r.breakdown_type || '').toLowerCase() !== 'planned down time');
-  const cons = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date')).filter(r => (r.breakdown_type || '').toLowerCase() !== 'planned down time');
+  const cons = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date'));
   if (!breakdown.length && !cons.length) { addAIMessage('No breakdown data for this period.'); return; }
   const all = [...breakdown, ...cons];
   const totalDowntime = sum(all.map(r => r.downtime || 0));
