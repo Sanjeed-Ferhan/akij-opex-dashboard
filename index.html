@@ -495,7 +495,7 @@ function renderAll() {
   const costSavings = sbuFilter(monthFilterByMonthlyValues(allData.costSavings));
   const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
   const projects = sbuFilter(allData.projects);
-  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date')).filter(r => r.breakdown_type !== 'Planned Down Time');
   const training = sbuFilter(monthFilterByDate(allData.training, 'completion_date'));
   const problemSolving = sbuFilter(monthFilterByDate(allData.problemSolving, 'log_date'));
 
@@ -679,7 +679,7 @@ function renderCharts() {
   const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
   const costSavings = sbuFilter(monthFilterByMonthlyValues(allData.costSavings));
   const monthlyKey = `${currentYear}-${String(MONTHS.indexOf(currentMonth) + 1).padStart(2, '0')}`;
-  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date')).filter(r => r.breakdown_type !== 'Planned Down Time');
   const manpower = sbuFilter(monthFilterByDate(allData.manpower, 'manpower_date'));
 
   const chartDefaults = {
@@ -965,7 +965,7 @@ function analyze5SQuery() {
 }
 
 function analyzeBreakdownQuery() {
-  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+  const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date')).filter(r => r.breakdown_type !== 'Planned Down Time');
   const cons = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date'));
   if (!breakdown.length && !cons.length) { addAIMessage('No breakdown data for this period.'); return; }
   const all = [...breakdown, ...cons];
@@ -1064,7 +1064,7 @@ function runAIAnalysis() {
     const alerts = [];
     const oeeData = sbuFilter(monthFilterByDate(allData.oee, 'production_date'));
     const fiveS = sbuFilter(monthFilterByDate(allData.fiveS, 'audit_timestamp'));
-    const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date'));
+    const breakdown = sbuFilter(monthFilterByDate(allData.breakdown, 'breakdown_date')).filter(r => r.breakdown_type !== 'Planned Down Time');
     const consBreakdown = sbuFilter(monthFilterByDate(allData.consumerBreakdown, 'breakdown_date'));
     const problemSolving = sbuFilter(monthFilterByDate(allData.problemSolving, 'log_date'));
     const prodData = sbuFilter(monthFilterByDate(allData.oeePacing, 'production_date'));

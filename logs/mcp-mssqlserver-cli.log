@@ -8,3 +8,23 @@
 2026-08-23T17:13:58.042Z | INFO | MCP MSSQL Server process started with PID: 19580
 2026-08-23T17:13:58.043Z | INFO | Signal handlers registered for SIGINT and SIGTERM
 2026-08-23T17:13:58.043Z | INFO | Press Ctrl+C to gracefully shutdown the server
+2026-08-24T04:02:22.151Z | INFO | Starting MCP MSSQL Server from: C:\Users\ferha\AppData\Local\npm-cache\_npx\ffdd41263fd07c20\node_modules\@liangshanli\mcp-server-mssqlserver\src\server-final.js
+2026-08-24T04:02:22.155Z | INFO | Starting MCP MSSQL Server with environment: | {"MSSQL_SERVER":"203.202.241.211","MSSQL_PORT":"1433","MSSQL_USER":"mcp_user","MSSQL_DATABASE":"DWH","MSSQL_SCHEMA":"dbo","MSSQL_ENCRYPT":"false","MSSQL_TRUST_SERVER_CERTIFICATE":"false","ALLOW_DDL":"false","ALLOW_DROP":"false","ALLOW_DELETE":"false"}
+2026-08-24T04:02:22.174Z | INFO | MCP MSSQL Server process started with PID: 8376
+2026-08-24T04:02:22.175Z | INFO | Signal handlers registered for SIGINT and SIGTERM
+2026-08-24T04:02:22.175Z | INFO | Press Ctrl+C to gracefully shutdown the server
+2026-08-24T04:02:22.495Z | INFO | Starting MCP MSSQL Server from: C:\Users\ferha\AppData\Local\npm-cache\_npx\ffdd41263fd07c20\node_modules\@liangshanli\mcp-server-mssqlserver\src\server-final.js
+2026-08-24T04:02:22.556Z | INFO | Starting MCP MSSQL Server with environment: | {"MSSQL_SERVER":"203.202.241.211","MSSQL_PORT":"1433","MSSQL_USER":"mcp_user","MSSQL_DATABASE":"DataMart","MSSQL_SCHEMA":"dbo","MSSQL_ENCRYPT":"false","MSSQL_TRUST_SERVER_CERTIFICATE":"false","ALLOW_DDL":"false","ALLOW_DROP":"false","ALLOW_DELETE":"false"}
+2026-08-24T04:02:22.608Z | INFO | MCP MSSQL Server process started with PID: 16392
+2026-08-24T04:02:22.608Z | INFO | Signal handlers registered for SIGINT and SIGTERM
+2026-08-24T04:02:22.608Z | INFO | Press Ctrl+C to gracefully shutdown the server
+2026-08-24T06:14:53.793Z | INFO | Starting MCP MSSQL Server from: C:\Users\ferha\AppData\Local\npm-cache\_npx\ffdd41263fd07c20\node_modules\@liangshanli\mcp-server-mssqlserver\src\server-final.js
+2026-08-24T06:14:53.946Z | INFO | Starting MCP MSSQL Server with environment: | {"MSSQL_SERVER":"203.202.241.211","MSSQL_PORT":"1433","MSSQL_USER":"mcp_user","MSSQL_DATABASE":"DWH","MSSQL_SCHEMA":"dbo","MSSQL_ENCRYPT":"false","MSSQL_TRUST_SERVER_CERTIFICATE":"false","ALLOW_DDL":"false","ALLOW_DROP":"false","ALLOW_DELETE":"false"}
+2026-08-24T06:14:53.957Z | INFO | MCP MSSQL Server process started with PID: 15780
+2026-08-24T06:14:53.957Z | INFO | Signal handlers registered for SIGINT and SIGTERM
+2026-08-24T06:14:53.958Z | INFO | Press Ctrl+C to gracefully shutdown the server
+2026-08-24T06:14:56.620Z | INFO | Starting MCP MSSQL Server from: C:\Users\ferha\AppData\Local\npm-cache\_npx\ffdd41263fd07c20\node_modules\@liangshanli\mcp-server-mssqlserver\src\server-final.js
+2026-08-24T06:14:56.631Z | INFO | Starting MCP MSSQL Server with environment: | {"MSSQL_SERVER":"203.202.241.211","MSSQL_PORT":"1433","MSSQL_USER":"mcp_user","MSSQL_DATABASE":"DataMart","MSSQL_SCHEMA":"dbo","MSSQL_ENCRYPT":"false","MSSQL_TRUST_SERVER_CERTIFICATE":"false","ALLOW_DDL":"false","ALLOW_DROP":"false","ALLOW_DELETE":"false"}
+2026-08-24T06:14:56.663Z | INFO | MCP MSSQL Server process started with PID: 1876
+2026-08-24T06:14:56.664Z | INFO | Signal handlers registered for SIGINT and SIGTERM
+2026-08-24T06:14:56.665Z | INFO | Press Ctrl+C to gracefully shutdown the server
