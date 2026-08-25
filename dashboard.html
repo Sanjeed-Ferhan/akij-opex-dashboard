@@ -103,6 +103,44 @@ tbody tr:hover { background: var(--bg-card-hover); }
   .grid-2 { grid-template-columns: 1fr; }
   .header h1 { font-size: 18px; }
 }
+.ai-btn{position:fixed;bottom:24px;left:24px;z-index:999;background:linear-gradient(135deg,#8b5cf6,#3b82f6);color:#fff;border:none;padding:14px 22px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(139,92,246,0.4);display:flex;align-items:center;gap:8px;transition:all .25s}
+.ai-btn:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 6px 28px rgba(139,92,246,0.55)}
+.ai-btn .ai-icon{width:20px;height:20px}
+.ai-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1001;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.ai-modal-overlay.show{display:flex}
+.ai-modal{background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;width:94%;max-width:780px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.ai-modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ai-modal-header h2{font-size:18px;font-weight:700;background:linear-gradient(135deg,#a78bfa,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:10px}
+.ai-modal-close{background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:4px 10px;border-radius:8px;transition:all .2s}
+.ai-modal-close:hover{color:var(--text-primary);background:var(--bg-card)}
+.ai-modal-body{padding:24px;overflow-y:auto;flex:1}
+.ai-analyzing{text-align:center;padding:40px;color:var(--text-secondary)}
+.ai-analyzing .ai-pulse{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#3b82f6);margin:0 auto 16px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.7}}
+.ai-section{margin-bottom:24px}
+.ai-section-title{font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.ai-section-title .dot{width:8px;height:8px;border-radius:50%}
+.ai-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;transition:border-color .2s}
+.ai-card:hover{border-color:var(--accent)}
+.ai-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ai-card-title{font-size:13px;font-weight:600}
+.ai-priority{font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px}
+.ai-priority.critical{background:rgba(239,68,68,0.15);color:#ef4444}
+.ai-priority.high{background:rgba(245,158,11,0.15);color:#f59e0b}
+.ai-priority.medium{background:rgba(59,130,246,0.15);color:#3b82f6}
+.ai-priority.low{background:rgba(34,197,94,0.15);color:#22c55e}
+.ai-card-body{font-size:13px;color:var(--text-secondary);line-height:1.6}
+.ai-card-body strong{color:var(--text-primary)}
+.ai-card-metrics{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+.ai-metric{font-size:12px;color:var(--text-muted)}
+.ai-metric span{color:var(--accent);font-weight:600}
+.ai-summary{background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.2);border-radius:12px;padding:20px;margin-bottom:24px}
+.ai-summary h3{font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text-primary)}
+.ai-score{display:flex;align-items:center;gap:16px;margin-top:12px}
+.ai-score-ring{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0}
+.ai-score-label{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.ai-loading-dots::after{content:'';animation:dots 1.4s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
 </style>
 </head>
 <body>
@@ -310,6 +348,29 @@ tbody tr:hover { background: var(--bg-card-hover); }
 </div>
 
 <div class="toast" id="toast"></div>
+
+<button class="ai-btn" onclick="openAiAgent()" title="AI Agent - Analyze & Suggest">
+  <svg class="ai-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><path d="M9 19h6"/></svg>
+  AI Agent
+</button>
+
+<div class="ai-modal-overlay" id="aiModal">
+  <div class="ai-modal">
+    <div class="ai-modal-header">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient></defs><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>
+        AI Operations Agent
+      </h2>
+      <button class="ai-modal-close" onclick="closeAiAgent()">&times;</button>
+    </div>
+    <div class="ai-modal-body" id="aiModalBody">
+      <div class="ai-analyzing">
+        <div class="ai-pulse"></div>
+        <div>Analyzing operations data<span class="ai-loading-dots"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 var API_BASE = '/api/data';
@@ -925,6 +986,334 @@ document.getElementById('dwhPlantFilter').addEventListener('change', function() 
 });
 
 loadAllData();
+
+// ===== AI AGENT =====
+function openAiAgent() {
+  var m = document.getElementById('aiModal');
+  m.classList.add('show');
+  runAiAnalysis();
+}
+function closeAiAgent() {
+  document.getElementById('aiModal').classList.remove('show');
+}
+document.getElementById('aiModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAiAgent();
+});
+
+function fmt(v, d) {
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  return (Math.round(v * Math.pow(10, d || 1)) / Math.pow(10, d || 1)).toString();
+}
+
+function runAiAnalysis() {
+  var body = document.getElementById('aiModalBody');
+  body.innerHTML = '<div class="ai-analyzing"><div class="ai-pulse"></div><div>Analyzing operations data<span class="ai-loading-dots"></span></div></div>';
+
+  setTimeout(function() {
+    var suggestions = [];
+
+    // --- DWH OEE Analysis ---
+    if (dwhData && dwhData.summary) {
+      var s = dwhData.summary;
+      var oee = s.oee_pct, avail = s.availability_pct, perf = s.performance_pct, qual = s.quality_pct, npt = s.npt_pct;
+
+      if (oee !== null && oee < 0.65) {
+        suggestions.push({ section: 'OEE Performance', priority: 'critical', title: 'OEE below world-class benchmark',
+          body: 'Current OEE is <strong>' + fmt(oee * 100) + '%</strong>, well below the 85% world-class target. This indicates significant hidden factory capacity. A structured improvement plan targeting the biggest losses is needed immediately.',
+          metrics: ['Target: 85%', 'Gap: ' + fmt((0.85 - oee) * 100, 0) + ' pts'] });
+      } else if (oee !== null && oee < 0.85) {
+        suggestions.push({ section: 'OEE Performance', priority: 'high', title: 'OEE improvement opportunity',
+          body: 'Current OEE is <strong>' + fmt(oee * 100) + '%</strong>. The gap to world-class (85%) represents untapped capacity. Focus on the weakest component.',
+          metrics: ['Target: 85%', 'Gap: ' + fmt((0.85 - oee) * 100, 0) + ' pts'] });
+      }
+
+      if (avail !== null && avail < 0.9) {
+        var root = npt !== null && npt > 0.05 ? 'Non-productive time is ' + fmt(npt * 100) + '% of shift duration' : 'Investigate changeover, breakdown, and startup losses';
+        suggestions.push({ section: 'Availability', priority: perf !== null && perf < 0.7 ? 'high' : 'medium', title: 'Availability at ' + fmt(avail * 100) + '% — losses detected',
+          body: '<strong>' + root + '</strong>. Conduct a downtime Pareto analysis on the top 5 machines. Consider SMED for changeovers and preventive maintenance for breakdowns.',
+          metrics: ['Availability: ' + fmt(avail * 100) + '%', 'NPT: ' + fmt(npt * 100, 1) + '%'] });
+      }
+
+      if (perf !== null && perf < 0.7) {
+        suggestions.push({ section: 'Performance', priority: 'critical', title: 'Performance rate critically low at ' + fmt(perf * 100) + '%',
+          body: 'Actual output is only <strong>' + fmt(perf * 100) + '%</strong> of target. Major speed losses or minor stops are occurring. Run speed studies on the top 3 underperforming machines and compare actual cycle times vs. theoretical.',
+          metrics: ['Actual/Target: ' + fmt(perf * 100) + '%', 'Quality: ' + fmt(qual * 100, 1) + '%'] });
+      }
+
+      if (qual !== null && qual < 0.98) {
+        suggestions.push({ section: 'Quality', priority: qual < 0.95 ? 'high' : 'medium', title: 'Quality rate at ' + fmt(qual * 100) + '% — scrap/rework above target',
+          body: 'Good output is <strong>' + fmt(qual * 100) + '%</strong> of actual output. Analyze reject reasons by machine and product. Implement error-proofing (poka-yoke) on the top reject categories.',
+          metrics: ['Quality: ' + fmt(qual * 100, 1) + '%', 'Good/Actual: ' + fmt(s.good_output) + ' / ' + fmt(s.total_actual_output)] });
+      }
+
+      // Trend analysis
+      if (dwhData.trend && dwhData.trend.length >= 3) {
+        var recent = dwhData.trend.slice(-3);
+        var early = dwhData.trend.slice(0, 3);
+        var recentAvgOee = recent.reduce(function(a, r) { return a + (r.oee_pct || 0); }, 0) / recent.length;
+        var earlyAvgOee = early.reduce(function(a, r) { return a + (r.oee_pct || 0); }, 0) / early.length;
+        if (earlyAvgOee > 0 && recentAvgOee < earlyAvgOee * 0.9) {
+          suggestions.push({ section: 'OEE Trend', priority: 'high', title: 'OEE trending downward',
+            body: 'Recent 3-day average OEE (<strong>' + fmt(recentAvgOee * 100) + '%</strong>) is ' + fmt((1 - recentAvgOee / earlyAvgOee) * 100, 0) + '% below the earlier period (' + fmt(earlyAvgOee * 100) + '%). Investigate what changed — new product, maintenance backlog, or staffing.',
+            metrics: ['Recent: ' + fmt(recentAvgOee * 100) + '%', 'Earlier: ' + fmt(earlyAvgOee * 100) + '%'] });
+        }
+      }
+
+      // Machine-level deep dive
+      if (dwhData.machines && dwhData.machines.length > 0) {
+        var lowOee = dwhData.machines.filter(function(m) { return m.oee_pct !== null && m.oee_pct < 0.5; });
+        if (lowOee.length > 0) {
+          var worst = lowOee.slice(0, 3).map(function(m) { return m.machine + ' (' + fmt(m.oee_pct * 100) + '%)'; }).join(', ');
+          suggestions.push({ section: 'Machine Focus', priority: 'high', title: lowOee.length + ' machine(s) below 50% OEE',
+            body: 'Worst performers: <strong>' + worst + '</strong>. Prioritize a focused improvement kaizen on these machines. Check if they share a common failure mode (same product, shift, or root cause).',
+            metrics: ['Low-OEE machines: ' + lowOee.length, 'Total machines tracked: ' + dwhData.machines.length] });
+        }
+      }
+    }
+
+    // --- Improvement Cards Analysis ---
+    if (allData.improvement_cards && allData.improvement_cards.length > 0) {
+      var cards = allData.improvement_cards;
+      var open = cards.filter(function(c) { return (c.status || '').toLowerCase() === 'open'; });
+      var inProg = cards.filter(function(c) { return (c.status || '').toLowerCase() === 'in progress'; });
+      var done = cards.filter(function(c) { return (c.status || '').toLowerCase() === 'completed'; });
+      var total = cards.length;
+      var closeRate = total > 0 ? done.length / total : 0;
+
+      if (closeRate < 0.4 && total > 5) {
+        suggestions.push({ section: 'Improvement Pipeline', priority: 'high', title: 'Low completion rate on improvement cards',
+          body: 'Only <strong>' + fmt(closeRate * 100, 0) + '%</strong> of ' + total + ' improvement cards are completed (' + done.length + ' done, ' + open.length + ' open, ' + inProg.length + ' in progress). Review stalled cards — are they blocked by resources, approvals, or unclear ownership?',
+          metrics: ['Open: ' + open.length, 'In Progress: ' + inProg.length, 'Completed: ' + done.length] });
+      }
+
+      if (open.length > 10) {
+        suggestions.push({ section: 'Improvement Pipeline', priority: 'medium', title: open.length + ' open improvement cards backlog',
+          body: 'A large backlog of open cards may indicate prioritization issues. Run a weekly Kaizen review to triage: close stale cards, assign owners, and set deadlines for the top 5.',
+          metrics: ['Open cards: ' + open.length, 'Total: ' + total] });
+      }
+
+      // Category breakdown
+      var cats = {};
+      cards.forEach(function(c) {
+        var cat = (c.category || c.type || 'Uncategorized').trim();
+        if (!cats[cat]) cats[cat] = { total: 0, done: 0 };
+        cats[cat].total++;
+        if ((c.status || '').toLowerCase() === 'completed') cats[cat].done++;
+      });
+      var weakCats = Object.keys(cats).filter(function(k) { return cats[k].total >= 3 && cats[k].done / cats[k].total < 0.3; });
+      if (weakCats.length > 0) {
+        var catList = weakCats.map(function(k) { return k + ' (' + cats[k].done + '/' + cats[k].total + ')'; }).join(', ');
+        suggestions.push({ section: 'Improvement Categories', priority: 'medium', title: 'Categories with low closure rates',
+          body: 'These categories have <30% completion: <strong>' + catList + '</strong>. Consider dedicated workshops or assigning category champions to unblock them.',
+          metrics: [] });
+      }
+    }
+
+    // --- Problem Solving Analysis ---
+    if (allData.problem_solving_cards && allData.problem_solving_cards.length > 0) {
+      var ps = allData.problem_solving_cards;
+      var psOpen = ps.filter(function(c) { return (c.status || '').toLowerCase() === 'open'; });
+      var psOverdue = ps.filter(function(c) {
+        if (!c.target_date || (c.status || '').toLowerCase() === 'completed') return false;
+        return new Date(c.target_date) < new Date();
+      });
+
+      if (psOverdue.length > 0) {
+        suggestions.push({ section: 'Problem Solving', priority: 'critical', title: psOverdue.length + ' overdue problem-solving card(s)',
+          body: 'Overdue cards indicate stuck root-cause analysis or delayed corrective actions. Escalate to the plant manager and run a rapid A3 review session.',
+          metrics: ['Overdue: ' + psOverdue.length, 'Open: ' + psOpen.length] });
+      } else if (psOpen.length > 5) {
+        suggestions.push({ section: 'Problem Solving', priority: 'medium', title: psOpen.length + ' open problem-solving cards',
+          body: 'Maintain momentum by scheduling weekly problem-solving reviews. Ensure each card has a clear owner, root cause identified, and target date set.',
+          metrics: ['Open: ' + psOpen.length, 'Total: ' + ps.length] });
+      }
+    }
+
+    // --- 5S Audit Analysis ---
+    if (allData.accl_5s_audit_entries && allData.accl_5s_audit_entries.length > 0) {
+      var audits = allData.accl_5s_audit_entries;
+      var scores = audits.map(function(a) { return parseFloat(a.score || a.total_score || a.overall_score); }).filter(function(v) { return !isNaN(v); });
+      if (scores.length > 0) {
+        var avg = scores.reduce(function(a, b) { return a + b; }, 0) / scores.length;
+        var recentAudits = audits.slice(-10);
+        var recentScores = recentAudits.map(function(a) { return parseFloat(a.score || a.total_score || a.overall_score); }).filter(function(v) { return !isNaN(v); });
+        var recentAvg = recentScores.length > 0 ? recentScores.reduce(function(a, b) { return a + b; }, 0) / recentScores.length : avg;
+
+        if (recentAvg < 70) {
+          suggestions.push({ section: '5S Performance', priority: 'high', title: '5S audit scores below 70%',
+            body: 'Recent average 5S score is <strong>' + fmt(recentAvg, 0) + '%</strong>. Areas scoring lowest should get a focused 5S blitz event. Assign zone owners and set weekly follow-up audits.',
+            metrics: ['Recent avg: ' + fmt(recentAvg, 0) + '%', 'Overall avg: ' + fmt(avg, 0) + '%', 'Total audits: ' + audits.length] });
+        } else if (recentAvg < 80) {
+          suggestions.push({ section: '5S Performance', priority: 'medium', title: '5S scores have room to improve',
+            body: 'Average score is <strong>' + fmt(recentAvg, 0) + '%</strong>. Target 85%+ by standardizing the top 3 lowest-scoring S categories. Visual management boards at each zone help sustain gains.',
+            metrics: ['Recent avg: ' + fmt(recentAvg, 0) + '%'] });
+        }
+      }
+    }
+
+    // --- QCP Audit Analysis ---
+    if (allData.qcp_audit && allData.qcp_audit.length > 0) {
+      var qcp = allData.qcp_audit;
+      var qcpFail = qcp.filter(function(a) { return (a.result || a.status || '').toLowerCase().includes('fail') || (a.result || '').toLowerCase().includes('non-conform'); });
+      var qcpPass = qcp.filter(function(a) { return (a.result || a.status || '').toLowerCase().includes('pass') || (a.result || '').toLowerCase().includes('conform'); });
+      var totalQcp = qcp.length;
+      var failRate = totalQcp > 0 ? qcpFail.length / totalQcp : 0;
+
+      if (failRate > 0.1 && totalQcp > 5) {
+        suggestions.push({ section: 'Quality Control', priority: 'critical', title: 'QCP failure rate at ' + fmt(failRate * 100, 1) + '%',
+          body: '<strong>' + qcpFail.length + ' out of ' + totalQcp + '</strong> QCP audits failed. This is a serious quality risk. Implement immediate containment (100% inspection) on failing parameters and run a 5-Why analysis.',
+          metrics: ['Failures: ' + qcpFail.length, 'Pass rate: ' + fmt((1 - failRate) * 100, 1) + '%'] });
+      } else if (failRate > 0.05 && totalQcp > 5) {
+        suggestions.push({ section: 'Quality Control', priority: 'medium', title: 'QCP failure rate above 5%',
+          body: 'Monitor the failing parameters closely. Consider tightening control limits and increasing sampling frequency on the weak points.',
+          metrics: ['Failures: ' + qcpFail.length, 'Pass rate: ' + fmt((1 - failRate) * 100, 1) + '%'] });
+      }
+    }
+
+    // --- Capacity Analysis ---
+    if (allData.capacity && allData.capacity.length > 0) {
+      var caps = allData.capacity;
+      var overCap = caps.filter(function(c) {
+        var util = parseFloat(c.utilization || c.capacity_utilization || c.actual_utilization);
+        return !isNaN(util) && util > 0.9;
+      });
+      if (overCap.length > 0) {
+        var items = overCap.slice(0, 3).map(function(c) { return (c.line || c.product || c.item || 'Unknown'); }).join(', ');
+        suggestions.push({ section: 'Capacity Constraints', priority: 'high', title: overCap.length + ' line(s) above 90% utilization',
+          body: 'Bottleneck risk on: <strong>' + items + '</strong>. At >90% utilization, any small disruption causes missed targets. Evaluate overtime, outsourcing, or capital investment for these lines.',
+          metrics: ['Constrained lines: ' + overCap.length, 'Total lines: ' + caps.length] });
+      }
+    }
+
+    // --- Cost Savings Analysis ---
+    if (allData.cost_savings && allData.cost_savings.length > 0) {
+      var savings = allData.cost_savings;
+      var totalSaved = savings.reduce(function(a, c) { return a + (parseFloat(c.amount || c.savings || c.value) || 0); }, 0);
+      var achieved = savings.filter(function(c) { return (c.status || '').toLowerCase() === 'completed' || (c.status || '').toLowerCase() === 'achieved'; });
+
+      if (savings.length > 0 && achieved.length / savings.length < 0.5) {
+        suggestions.push({ section: 'Cost Reduction', priority: 'medium', title: 'Cost savings target tracking',
+          body: 'Only <strong>' + achieved.length + ' of ' + savings.length + '</strong> cost savings initiatives are completed. Total tracked savings: BDT ' + fmt(totalSaved, 0) + '. Accelerate by assigning dedicated owners and weekly check-ins.',
+          metrics: ['Total initiatives: ' + savings.length, 'Completed: ' + achieved.length] });
+      }
+    }
+
+    // --- Task Management Analysis ---
+    if (allData.tasks && allData.tasks.length > 0) {
+      var tasks = allData.tasks;
+      var taskOpen = tasks.filter(function(t) { return (t.status || '').toLowerCase() !== 'completed' && (t.status || '').toLowerCase() !== 'done'; });
+      var taskOverdue = tasks.filter(function(t) {
+        if (!t.due_date || !t.deadline) return false;
+        var d = new Date(t.due_date || t.deadline);
+        return d < new Date() && (t.status || '').toLowerCase() !== 'completed';
+      });
+
+      if (taskOverdue.length > 0) {
+        suggestions.push({ section: 'Task Management', priority: 'high', title: taskOverdue.length + ' overdue task(s)',
+          body: 'Overdue tasks erode discipline and delay improvements. Conduct a weekly task review — reassign, escalate, or close stale items.',
+          metrics: ['Overdue: ' + taskOverdue.length, 'Open: ' + taskOpen.length] });
+      }
+    }
+
+    // --- Daily Meeting Analysis ---
+    if (allData.daily_meeting_form && allData.daily_meeting_form.length > 0) {
+      var meetings = allData.daily_meeting_form;
+      var thisMonth = meetings.filter(function(m) {
+        var d = new Date(m.meeting_date || m.date || m.created_at);
+        var now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+      var workingDays = 22;
+      var meetingRate = thisMonth.length / workingDays;
+      if (meetingRate < 0.7) {
+        suggestions.push({ section: 'Meeting Discipline', priority: 'medium', title: 'Daily meeting attendance at ' + fmt(meetingRate * 100, 0) + '%',
+          body: 'Only <strong>' + thisMonth.length + '</strong> daily meetings held this month out of ~' + workingDays + ' working days. Consistent daily meetings are the backbone of operational excellence. Escalate non-attendance.',
+          metrics: ['Meetings this month: ' + thisMonth.length, 'Target: ' + workingDays] });
+      }
+    }
+
+    // --- Productivity Analysis ---
+    if (allData.productivity_improvement && allData.productivity_improvement.length > 0) {
+      var prods = allData.productivity_improvement;
+      var prodDone = prods.filter(function(p) { return (p.status || '').toLowerCase() === 'completed'; });
+      if (prods.length > 5 && prodDone.length / prods.length < 0.3) {
+        suggestions.push({ section: 'Productivity', priority: 'medium', title: 'Productivity improvement initiatives lagging',
+          body: 'Only <strong>' + prodDone.length + ' of ' + prods.length + '</strong> productivity initiatives completed. Prioritize quick wins (implementable in <2 weeks) to build momentum.',
+          metrics: ['Completed: ' + prodDone.length, 'Total: ' + prods.length] });
+      }
+    }
+
+    // --- Process Standardization ---
+    if (allData.process_standardization && allData.process_standardization.length > 0) {
+      var psCount = allData.process_standardization.length;
+      if (psCount < 5) {
+        suggestions.push({ section: 'Standard Work', priority: 'medium', title: 'Only ' + psCount + ' standardized process(es) documented',
+          body: 'Standard work is the foundation of continuous improvement. Target at least 1 process per critical machine/operation. Start with the highest-volume or highest-defect processes.',
+          metrics: ['Standardized: ' + psCount] });
+      }
+    }
+
+    // Fallback
+    if (suggestions.length === 0) {
+      suggestions.push({ section: 'General', priority: 'low', title: 'All indicators within acceptable range',
+        body: 'No critical issues detected. Continue monitoring and focus on sustaining current performance levels. Consider setting stretch targets for the next quarter.',
+        metrics: [] });
+    }
+
+    // Render
+    var html = '';
+    // Summary
+    var critCount = suggestions.filter(function(s) { return s.priority === 'critical'; }).length;
+    var highCount = suggestions.filter(function(s) { return s.priority === 'high'; }).length;
+    var medCount = suggestions.filter(function(s) { return s.priority === 'medium'; }).length;
+    var lowCount = suggestions.filter(function(s) { return s.priority === 'low'; }).length;
+    var scoreColor = critCount > 0 ? '#ef4444' : highCount > 1 ? '#f59e0b' : highCount > 0 ? '#f59e0b' : '#22c55e';
+    var scoreLabel = critCount > 0 ? 'Attention Needed' : highCount > 1 ? 'Action Required' : highCount > 0 ? 'Monitor Closely' : 'Healthy';
+    var score = Math.max(0, 100 - (critCount * 25) - (highCount * 15) - (medCount * 5));
+
+    html += '<div class="ai-summary">';
+    html += '<h3>Operations Health Summary</h3>';
+    html += '<div style="font-size:13px;color:var(--text-secondary)">' + suggestions.length + ' findings analyzed across all operational data</div>';
+    html += '<div class="ai-score">';
+    html += '<div class="ai-score-ring" style="border:4px solid ' + scoreColor + ';color:' + scoreColor + '">' + score + '</div>';
+    html += '<div class="ai-score-label"><strong style="color:' + scoreColor + '">' + scoreLabel + '</strong><br>';
+    html += '<span style="font-size:12px">' + critCount + ' critical · ' + highCount + ' high · ' + medCount + ' medium · ' + lowCount + ' low</span></div>';
+    html += '</div></div>';
+
+    // Group by section
+    var sections = {};
+    suggestions.forEach(function(s) {
+      if (!sections[s.section]) sections[s.section] = [];
+      sections[s.section].push(s);
+    });
+
+    var sectionColors = { 'OEE Performance': '#ef4444', 'Availability': '#f59e0b', 'Performance': '#ef4444', 'Quality': '#3b82f6',
+      'OEE Trend': '#f59e0b', 'Machine Focus': '#ef4444', 'Improvement Pipeline': '#8b5cf6', 'Improvement Categories': '#8b5cf6',
+      'Problem Solving': '#ef4444', '5S Performance': '#22c55e', 'Quality Control': '#3b82f6', 'Capacity Constraints': '#f59e0b',
+      'Cost Reduction': '#22c55e', 'Task Management': '#f59e0b', 'Meeting Discipline': '#06b6d4', 'Productivity': '#8b5cf6',
+      'Standard Work': '#06b6d4', 'General': '#22c55e' };
+
+    Object.keys(sections).forEach(function(sec) {
+      html += '<div class="ai-section">';
+      html += '<div class="ai-section-title"><span class="dot" style="background:' + (sectionColors[sec] || '#3b82f6') + '"></span>' + sec + '</div>';
+      sections[sec].forEach(function(s) {
+        html += '<div class="ai-card">';
+        html += '<div class="ai-card-header"><div class="ai-card-title">' + s.title + '</div>';
+        html += '<span class="ai-priority ' + s.priority + '">' + s.priority + '</span></div>';
+        html += '<div class="ai-card-body">' + s.body;
+        if (s.metrics && s.metrics.length > 0) {
+          html += '<div class="ai-card-metrics">';
+          s.metrics.forEach(function(m) { html += '<div class="ai-metric">' + m + '</div>'; });
+          html += '</div>';
+        }
+        html += '</div></div>';
+      });
+      html += '</div>';
+    });
+
+    body.innerHTML = html;
+  }, 1200);
+}
 </script>
 </body>
 </html>
