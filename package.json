@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Sanjeed-Ferhan/akij-opex-dashboard#readme",
   "dependencies": {
+    "mssql": "^12.7.0",
     "pg": "^8.23.0"
   }
 }

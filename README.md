@@ -19,11 +19,16 @@ A comprehensive OPEX dashboard for Akij Resource, backed by the **ArlOpexDB** Po
 browser ──> dashboard.html ──fetch──> /api/data?table=<name>  (Vercel serverless function)
                                          │
                                          └──> PostgreSQL (ArlOpexDB) via `pg`
+
+browser ──> dashboard.html ──fetch──> /api/dwh?days=7&plant=<name>  (Vercel serverless function)
+                                         │
+                                         └──> MSSQL DWH (mes.tblOeeProdWasteHeaderArc) via `mssql`
 ```
 
 - `dashboard.html` — single-file frontend (Chart.js via CDN), no build step.
-- `api/data.js` — Vercel serverless function. Whitelists 18 tables; rejects anything else.
-- `vercel.json` — routes `/api/*` to the function and `/*` to `dashboard.html`.
+- `api/data.js` — Vercel serverless function. Whitelists 18 PostgreSQL tables; rejects anything else.
+- `api/dwh.js` — Vercel serverless function. Queries the MSSQL DWH OEE table, computes OEE / capacity utilization / NPT% and returns a day-wise production trend.
+- `vercel.json` — routes `/api/<name>` to the matching serverless function and `/*` to `dashboard.html`.
 - `index.html` — original Supabase-based dashboard (kept for reference).
 - `db-connect.js`, `upload-tables.js` — local DB tooling used during migration.
 
@@ -32,11 +37,20 @@ browser ──> dashboard.html ──fetch──> /api/data?table=<name>  (Verce
 Set these in Vercel (Project → Settings → Environment Variables), and locally via `.env` / your shell for `vercel dev`:
 
 ```
+# PostgreSQL (ArlOpexDB)
 PGHOST=arl-community-developer.postgres.database.azure.com
 PGPORT=5432
 PGDATABASE=ArlOpexDB
 PGUSER=deputy.coo@akijresource.com
 PGPASSWORD=<your-password>
+
+# MSSQL (DWH) — used by /api/dwh
+MSSQL_SERVER=203.202.241.211
+MSSQL_PORT=1433
+MSSQL_DATABASE=DWH
+MSSQL_USER=mcp_user
+MSSQL_PASSWORD=<your-password>
+MSSQL_ENCRYPT=false
 ```
 
 ## Local development

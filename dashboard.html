@@ -192,6 +192,23 @@ tbody tr:hover { background: var(--bg-card-hover); }
     </div>
 
     <div id="tab-production" class="tab-content">
+      <div class="card">
+        <h3>DWH OEE Overview (last 7 days)</h3>
+        <div class="filters" style="border:none;padding:0 0 12px 0;background:transparent;">
+          <div class="filter-group">
+            <label>Plant:</label>
+            <select id="dwhPlantFilter" style="min-width:240px;">
+              <option value="all">All Plants</option>
+            </select>
+          </div>
+        </div>
+        <div class="kpi-grid" id="dwhKpiGrid"></div>
+        <div class="chart-container" style="height:320px;"><canvas id="dwhTrendChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>DWH OEE - Machine Level (last 7 days)</h3>
+        <div class="table-container" style="max-height:400px;overflow-y:auto"><table id="dwhMachineTable"><thead><tr><th>Date</th><th>Plant</th><th>Shop Floor</th><th>Machine</th><th>Item</th><th>Shift</th><th>Actual</th><th>Target</th><th>OEE %</th><th>Avail %</th><th>Perf %</th><th>Qual %</th><th>NPT %</th></tr></thead><tbody></tbody></table></div>
+      </div>
       <div class="kpi-grid" id="prodKpiGrid"></div>
       <div class="card">
         <h3>4-Hour Tracking Records (selected filters)</h3>
@@ -303,6 +320,8 @@ const OEE_MONTH_LABELS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar',
 
 let allData = {};
 let charts = {};
+let dwhData = null;
+let currentDwhPlant = 'all';
 let currentSbu = 'all';
 let currentMonth = '';
 let currentYear = '2026';
@@ -421,7 +440,8 @@ async function loadAllData() {
     }
   }
 
-  // Populate SBU filter from clean sources only
+  // Fetch DWH OEE data (last 7 days)
+  await loadDWHData(currentDwhPlant);
   const CLEAN_SBU_TABLES = ['target_oee', 'capacity', 'qcp_audit', 'daily_meeting_form', 'daily_meeting_target', 'four_hour_tracking', 'problem_solving_log', 'qcp_specs'];
   const sbuSet = new Set();
   CLEAN_SBU_TABLES.forEach(t => (allData[t] || []).forEach(r => { if (r.sbu && String(r.sbu).length <= 30) sbuSet.add(String(r.sbu).trim()); }));
@@ -662,8 +682,100 @@ function renderAll() {
     <tr><td>${r.log_date}</td><td>${r.sbu}</td><td>${r.name}</td><td>${(r.problem || '').substring(0, 60)}</td><td>${badge(r.status)}</td><td>${badge(r.priority)}</td></tr>
   `).join('');
 
+  renderDWH();
   renderCharts();
 }
+
+function renderDWH() {
+  if (!dwhData) return;
+  const d = dwhData;
+  const summary = d.summary;
+
+  const pct = (v, dg) => (v !== null && v !== undefined) ? (v * 100).toFixed(dg || 1) + '%' : '-';
+  const bdt = (v) => Number(v || 0).toLocaleString('en-US', {maximumFractionDigits: 0});
+
+  document.getElementById('dwhKpiGrid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">OEE</div><div class="kpi-value">${pct(summary.oee_pct, 1)}</div><div class="kpi-sub">${summary.records} shift records</div></div>
+    <div class="kpi-card"><div class="kpi-label">Actual Production</div><div class="kpi-value">${bdt(summary.total_actual_output)}</div><div class="kpi-sub">Good: ${bdt(summary.total_good_output)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Capacity Utilization</div><div class="kpi-value">${pct(summary.capacity_util_pct, 1)}</div><div class="kpi-sub">Target: ${bdt(summary.total_target)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">NPT %</div><div class="kpi-value">${pct(summary.npt_pct, 2)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Availability</div><div class="kpi-value">${pct(summary.availability_pct, 1)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Performance</div><div class="kpi-value">${pct(summary.performance_pct, 1)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Quality</div><div class="kpi-value">${pct(summary.quality_pct, 1)}</div></div>
+  `;
+
+  const mtbody = document.querySelector('#dwhMachineTable tbody');
+  mtbody.innerHTML = (d.machines || []).map(r => `
+    <tr>
+      <td>${r.production_date}</td><td>${r.plant}</td><td>${r.shopfloor}</td><td>${r.machine}</td><td>${(r.item || '').substring(0, 30)}</td><td>${r.shift}</td>
+      <td>${bdt(r.actual)}</td><td>${bdt(r.target)}</td>
+      <td>${pct(r.oee_pct, 1)}</td><td>${pct(r.availability_pct, 1)}</td><td>${pct(r.performance_pct, 1)}</td><td>${pct(r.quality_pct, 1)}</td><td>${pct(r.npt_pct, 2)}</td>
+    </tr>
+  `).join('');
+  if (!d.machines || !d.machines.length) mtbody.innerHTML = '<tr><td colspan="13" class="empty-state">No machine data</td></tr>';
+
+  // 7-day trend chart
+  const c = charts.dwhTrend;
+  if (c) c.destroy();
+  const trend = d.trend || [];
+  if (trend.length) {
+    const labels = trend.map(t => t.production_date);
+    charts.dwhTrend = new Chart(document.getElementById('dwhTrendChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Actual Production', data: trend.map(t => t.actual_output), backgroundColor: 'rgba(59,130,246,0.6)', yAxisID: 'y' },
+          { label: 'Target Production', data: trend.map(t => t.target_output), backgroundColor: 'rgba(139,92,246,0.35)', yAxisID: 'y' },
+          { label: 'OEE %', type: 'line', data: trend.map(t => t.oee_pct !== null ? (t.oee_pct * 100).toFixed(1) : null), borderColor: '#22c55e', backgroundColor: 'transparent', tension: 0.3, yAxisID: 'y1', pointRadius: 3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' } },
+          y: { position: 'left', title: { display: true, text: 'Quantity', color: '#94a3b8' }, ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' } },
+          y1: { position: 'right', min: 0, max: 100, title: { display: true, text: 'OEE %', color: '#22c55e' }, ticks: { color: '#22c55e', font: { size: 10 } }, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  } else {
+    const el = document.getElementById('dwhTrendChart');
+    if (el) el.innerHTML = '<div class="empty-state">No trend data</div>';
+  }
+}
+
+async function loadDWHData(plant) {
+  const plantSel = document.getElementById('dwhPlantFilter');
+  try {
+    const dwhRes = await fetch('/api/dwh?days=7&plant=' + encodeURIComponent(plant || 'all'));
+    if (dwhRes.ok) {
+      dwhData = await dwhRes.json();
+      const prevValue = plantSel.value;
+      // Suppress change event while repopulating
+      plantSel.__populating = true;
+      plantSel.innerHTML = '<option value="all">All Plants</option>';
+      (dwhData.plants || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        plantSel.appendChild(opt);
+      });
+      plantSel.value = plant || 'all';
+      plantSel.__populating = false;
+      renderDWH();
+      return;
+    }
+    throw new Error('DWH API failed (' + dwhRes.status + ')');
+  } catch (e) {
+    dwhData = null;
+    document.getElementById('dwhKpiGrid').innerHTML = '<div class="kpi-card"><div class="kpi-label">DWH OEE</div><div class="kpi-value">Error</div><div class="kpi-sub">' + e.message + '</div></div>';
+  }
+}
+
+
 
 function oeeMonthCol(month) {
   const mIdx = MONTHS.indexOf(month);
@@ -804,6 +916,14 @@ function refreshAllData() {
 
 // Initialize
 initMonthFilter();
+
+// DWH plant filter change handler
+document.getElementById('dwhPlantFilter').addEventListener('change', function() {
+  if (this.__populating) return;
+  currentDwhPlant = this.value;
+  loadDWHData(currentDwhPlant);
+});
+
 loadAllData();
 </script>
 </body>
