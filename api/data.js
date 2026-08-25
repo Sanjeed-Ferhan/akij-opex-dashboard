@@ -1,7 +1,6 @@
 const { Client } = require('pg');
 
 const ALLOWED_TABLES = new Set([
-  'capacity',
   'daily_meeting_form',
   'daily_meeting_target',
   'problem_solving_log',

@@ -180,9 +180,8 @@ tbody tr:hover { background: var(--bg-card-hover); }
 
     <div class="tabs">
       <button class="tab active" onclick="switchTab('overview', this)">Overview</button>
-      <button class="tab" onclick="switchTab('oee', this)">OEE</button>
-      <button class="tab" onclick="switchTab('capacity', this)">Capacity</button>
-      <button class="tab" onclick="switchTab('production', this)">Production</button>
+<button class="tab" onclick="switchTab('oee', this)">OEE</button>
+  <button class="tab" onclick="switchTab('production', this)">Production</button>
       <button class="tab" onclick="switchTab('improvement', this)">Improvement &amp; Savings</button>
       <button class="tab" onclick="switchTab('quality', this)">Quality &amp; 5S</button>
       <button class="tab" onclick="switchTab('meetings', this)">Meetings</button>
@@ -197,15 +196,11 @@ tbody tr:hover { background: var(--bg-card-hover); }
           <div class="chart-container"><canvas id="oeeTrendChart"></canvas></div>
         </div>
         <div class="card">
-          <h3>Capacity - Design vs Workable vs Actual</h3>
-          <div class="chart-container"><canvas id="capChart"></canvas></div>
-        </div>
-      </div>
-      <div class="grid-2">
-        <div class="card">
           <h3>Cost Savings by Source</h3>
           <div class="chart-container"><canvas id="savingsChart"></canvas></div>
         </div>
+      </div>
+      <div class="grid-2">
         <div class="card">
           <h3>4-Hour Tracking - Target vs Actual (selected SBU)</h3>
           <div class="chart-container"><canvas id="trackingChart"></canvas></div>
@@ -218,14 +213,6 @@ tbody tr:hover { background: var(--bg-card-hover); }
       <div class="card">
         <h3>OEE Target by Month and SBU</h3>
         <div class="table-container"><table id="oeeTable"><thead><tr><th>SBU</th><th>Baseline LY</th><th>Target 26-27</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th></tr></thead><tbody></tbody></table></div>
-      </div>
-    </div>
-
-    <div id="tab-capacity" class="tab-content">
-      <div class="kpi-grid" id="capKpiGrid"></div>
-      <div class="card">
-        <h3>Machine Capacity Details</h3>
-        <div class="table-container"><table id="capacityTable"><thead><tr><th>Cluster</th><th>SBU</th><th>Machine</th><th>UOM</th><th>Design</th><th>Workable</th><th>Actual</th><th>Utilization %</th></tr></thead><tbody></tbody></table></div>
       </div>
     </div>
 
@@ -349,7 +336,7 @@ tbody tr:hover { background: var(--bg-card-hover); }
 
 <div class="toast" id="toast"></div>
 
-<button class="ai-btn" onclick="openAiAgent()" title="AI Agent - Analyze & Suggest">
+<button class="ai-btn" onclick="document.getElementById('aiModal').classList.add('show'); runAiAnalysis()" title="AI Agent - Analyze & Suggest">
   <svg class="ai-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><path d="M9 19h6"/></svg>
   AI Agent
 </button>
@@ -483,7 +470,7 @@ async function loadAllData() {
   document.getElementById('dashboardContent').style.display = 'none';
 
   const tables = [
-    'target_oee', 'capacity', 'cost_savings', 'productivity_improvement',
+    'target_oee', 'cost_savings', 'productivity_improvement',
     'environment_impact', 'four_hour_tracking', 'improvement_cards',
     'problem_solving_cards', 'process_standardization', 'qcp_audit', 'qcp_specs',
     'accl_5s_audit_entries', 'daily_meeting_form', 'daily_meeting_target',
@@ -503,7 +490,7 @@ async function loadAllData() {
 
   // Fetch DWH OEE data (last 7 days)
   await loadDWHData(currentDwhPlant);
-  const CLEAN_SBU_TABLES = ['target_oee', 'capacity', 'qcp_audit', 'daily_meeting_form', 'daily_meeting_target', 'four_hour_tracking', 'problem_solving_log', 'qcp_specs'];
+  const CLEAN_SBU_TABLES = ['target_oee', 'qcp_audit', 'daily_meeting_form', 'daily_meeting_target', 'four_hour_tracking', 'problem_solving_log', 'qcp_specs'];
   const sbuSet = new Set();
   CLEAN_SBU_TABLES.forEach(t => (allData[t] || []).forEach(r => { if (r.sbu && String(r.sbu).length <= 30) sbuSet.add(String(r.sbu).trim()); }));
   const sbuSel = document.getElementById('sbuFilter');
@@ -534,7 +521,6 @@ function renderAll() {
 
   // Overview KPIs
   const oee = sbuFilter(allData.target_oee);
-  const capacity = sbuFilter(allData.capacity);
   const costSavings = sbuFilter(allData.cost_savings);
   const qcpData = sbuFilter(monthFilterByDate(allData.qcp_audit, 'audit_date'));
   const tracking = sbuFilter(monthFilterByDate(allData.four_hour_tracking, 'entry_date'));
@@ -544,10 +530,6 @@ function renderAll() {
 
   const avgOeeTarget = avg(oee.map(r => num(r.target_2627_pct)));
   const totalSavings = sum(costSavings.map(r => num(r.total_savings_bdt)));
-  const avgCapUtil = avg(capacity.map(r => {
-    const d = num(r.design_capacity), a = num(r.actual_capacity);
-    return (d && a) ? (a / d * 100) : null;
-  }).filter(v => v !== null));
   const qcpPass = qcpData.filter(r => String(r.status).toLowerCase() === 'pass').length;
   const qcpPassRate = qcpData.length ? (qcpPass / qcpData.length * 100) : null;
   const trackTarget = sum(tracking.map(r => num(r.target_qty)).filter(v => v !== null));
@@ -557,7 +539,6 @@ function renderAll() {
   document.getElementById('kpiGrid').innerHTML = `
     <div class="kpi-card"><div class="kpi-label">Avg OEE Target</div><div class="kpi-value">${avgOeeTarget > 0 ? pct(avgOeeTarget) + '%' : 'N/A'}</div><div class="kpi-sub">FY 2026-27 target</div></div>
     <div class="kpi-card"><div class="kpi-label">Total Cost Savings</div><div class="kpi-value">${fmtBDT(totalSavings)}</div><div class="kpi-sub">${costSavings.length} savings cards</div></div>
-    <div class="kpi-card"><div class="kpi-label">Avg Capacity Utilization</div><div class="kpi-value">${avgCapUtil ? avgCapUtil.toFixed(1) + '%' : 'N/A'}</div><div class="kpi-sub">${capacity.length} machines</div></div>
     <div class="kpi-card"><div class="kpi-label">QCP Pass Rate</div><div class="kpi-value">${qcpPassRate !== null ? qcpPassRate.toFixed(1) + '%' : 'N/A'}</div><div class="kpi-sub">${qcpPass}/${qcpData.length} passed</div></div>
     <div class="kpi-card"><div class="kpi-label">4H Target Qty</div><div class="kpi-value">${fmt(trackTarget)}</div><div class="kpi-sub">${tracking.length} tracking records</div></div>
     <div class="kpi-card"><div class="kpi-label">4H Actual Qty</div><div class="kpi-value">${fmt(trackActual)}</div><div class="kpi-sub">${trackTarget ? ((trackActual/trackTarget)*100).toFixed(1) + '% achieved' : ''}</div></div>
@@ -580,25 +561,6 @@ function renderAll() {
     <tr><td>${r.sbu}</td><td>${num(r.baseline_last_year_pct) !== null ? pct(num(r.baseline_last_year_pct)) + '%' : '-'}</td><td>${num(r.target_2627_pct) !== null ? pct(num(r.target_2627_pct)) + '%' : '-'}</td>
     ${OEE_MONTH_COLS.map(c => `<td>${num(r[c]) !== null ? pct(num(r[c])) + '%' : '-'}</td>`).join('')}</tr>
   `).join('');
-
-  // Capacity KPIs
-  const totalDesign = sum(capacity.map(r => num(r.design_capacity)).filter(v=>v!==null));
-  const totalWorkable = sum(capacity.map(r => num(r.workable_capacity)).filter(v=>v!==null));
-  const totalActual = sum(capacity.map(r => num(r.actual_capacity)).filter(v=>v!==null));
-  document.getElementById('capKpiGrid').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total Design Capacity</div><div class="kpi-value">${fmt(totalDesign)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Workable Capacity</div><div class="kpi-value">${fmt(totalWorkable)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total Actual Capacity</div><div class="kpi-value">${fmt(totalActual)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Machines</div><div class="kpi-value">${capacity.length}</div></div>
-  `;
-
-  // Capacity Table
-  const capTbody = document.querySelector('#capacityTable tbody');
-  capTbody.innerHTML = capacity.map(r => {
-    const d = num(r.design_capacity), a = num(r.actual_capacity);
-    const util = (d && a) ? (a / d * 100) : null;
-    return `<tr><td>${r.cluster}</td><td>${r.sbu}</td><td>${r.machine}</td><td>${r.uom}</td><td>${fmt(d)}</td><td>${fmt(num(r.workable_capacity))}</td><td>${fmt(a)}</td><td>${util !== null ? util.toFixed(1) + '%' : '-'}</td></tr>`;
-  }).join('');
 
   // Production KPIs
   const prodTarget = sum(tracking.map(r => num(r.target_qty)).filter(v => v !== null));
@@ -885,24 +847,6 @@ function renderCharts() {
     });
   }
 
-  // Capacity Chart
-  const capRows = sbuFilter(allData.capacity);
-  if (capRows.length) {
-    const machines = capRows.slice(0, 10).map(r => r.machine);
-    charts.cap = new Chart(document.getElementById('capChart'), {
-      type: 'bar',
-      data: {
-        labels: machines,
-        datasets: [
-          { label: 'Design', data: capRows.slice(0,10).map(r => num(r.design_capacity)), backgroundColor: 'rgba(139,92,246,0.5)' },
-          { label: 'Workable', data: capRows.slice(0,10).map(r => num(r.workable_capacity)), backgroundColor: 'rgba(59,130,246,0.5)' },
-          { label: 'Actual', data: capRows.slice(0,10).map(r => num(r.actual_capacity)), backgroundColor: 'rgba(34,197,94,0.5)' }
-        ]
-      },
-      options: chartDefaults
-    });
-  }
-
   // Savings by Source
   const csRows = sbuFilter(allData.cost_savings);
   if (csRows.length) {
@@ -1006,15 +950,46 @@ function fmt(v, d) {
 }
 
 function runAiAnalysis() {
+  // Apply current SBU and plant filters
+  var sbu = currentSbu;
+  var plant = currentDwhPlant;
+
+  // Filter DWH data by plant
+  var dwhCur = dwhData;
+  if (dwhData && dwhData.summary && dwhData.machines) {
+    dwhCur = {
+      summary: dwhData.summary,
+      machines: dwhData.machines.filter(function(m) { return !plant || plant === 'all' || m.plant === plant; })
+    };
+  }
+
+  // SBU-filtered data (same as renderAll)
+  var filtered = {};
+  Object.keys(allData).forEach(function(key) {
+    var tbl = allData[key];
+    if (key === 'tasks' || key === 'problem_solving_log') {
+      filtered[key] = tbl;
+    } else {
+      filtered[key] = (tbl || []).filter(function(r) { return !sbu || r.sbu === sbu; });
+    }
+  });
+
   var body = document.getElementById('aiModalBody');
   body.innerHTML = '<div class="ai-analyzing"><div class="ai-pulse"></div><div>Analyzing operations data<span class="ai-loading-dots"></span></div></div>';
 
   setTimeout(function() {
     var suggestions = [];
 
-    // --- DWH OEE Analysis ---
+    // --- DWH OEE Analysis (plant-filtered) ---
     if (dwhData && dwhData.summary) {
-      var s = dwhData.summary;
+      var dwhCur = dwhData;
+      if (currentDwhPlant && currentDwhPlant !== 'all' && dwhData.machines) {
+        dwhCur = {
+          summary: dwhData.summary,
+          machines: dwhData.machines.filter(function(m) { return m.plant === currentDwhPlant; })
+        };
+      }
+      var s = dwhCur.summary;
       var oee = s.oee_pct, avail = s.availability_pct, perf = s.performance_pct, qual = s.quality_pct, npt = s.npt_pct;
 
       if (oee !== null && oee < 0.65) {
@@ -1046,8 +1021,8 @@ function runAiAnalysis() {
           metrics: ['Quality: ' + fmt(qual * 100, 1) + '%', 'Good/Actual: ' + fmt(s.good_output) + ' / ' + fmt(s.total_actual_output)] });
       }
 
-      // Trend analysis
-      if (dwhData.trend && dwhData.trend.length >= 3) {
+      // Trend analysis (using plant-filtered data)
+      if (dwhCur.trend && dwhCur.trend.length >= 3) {
         var recent = dwhData.trend.slice(-3);
         var early = dwhData.trend.slice(0, 3);
         var recentAvgOee = recent.reduce(function(a, r) { return a + (r.oee_pct || 0); }, 0) / recent.length;
@@ -1060,20 +1035,20 @@ function runAiAnalysis() {
       }
 
       // Machine-level deep dive
-      if (dwhData.machines && dwhData.machines.length > 0) {
-        var lowOee = dwhData.machines.filter(function(m) { return m.oee_pct !== null && m.oee_pct < 0.5; });
+      if (dwhCur && dwhCur.machines && dwhCur.machines.length > 0) {
+        var lowOee = dwhCur.machines.filter(function(m) { return m.oee_pct !== null && m.oee_pct < 0.5; });
         if (lowOee.length > 0) {
           var worst = lowOee.slice(0, 3).map(function(m) { return m.machine + ' (' + fmt(m.oee_pct * 100) + '%)'; }).join(', ');
           suggestions.push({ section: 'Machine Focus', priority: 'high', title: lowOee.length + ' machine(s) below 50% OEE',
             body: 'Worst performers: <strong>' + worst + '</strong>. Prioritize a focused improvement kaizen on these machines. Check if they share a common failure mode (same product, shift, or root cause).',
-            metrics: ['Low-OEE machines: ' + lowOee.length, 'Total machines tracked: ' + dwhData.machines.length] });
+            metrics: ['Low-OEE machines: ' + lowOee.length, 'Total machines tracked: ' + (dwhCur ? dwhCur.machines.length : 0)] });
         }
       }
     }
 
-    // --- Improvement Cards Analysis ---
-    if (allData.improvement_cards && allData.improvement_cards.length > 0) {
-      var cards = allData.improvement_cards;
+    // --- Improvement Cards Analysis (SBU-filtered) ---
+    if (filtered.improvement_cards && filtered.improvement_cards.length > 0) {
+      var cards = filtered.improvement_cards;
       var open = cards.filter(function(c) { return (c.status || '').toLowerCase() === 'open'; });
       var inProg = cards.filter(function(c) { return (c.status || '').toLowerCase() === 'in progress'; });
       var done = cards.filter(function(c) { return (c.status || '').toLowerCase() === 'completed'; });
@@ -1109,9 +1084,9 @@ function runAiAnalysis() {
       }
     }
 
-    // --- Problem Solving Analysis ---
-    if (allData.problem_solving_cards && allData.problem_solving_cards.length > 0) {
-      var ps = allData.problem_solving_cards;
+    // --- Problem Solving Analysis (SBU-filtered) ---
+    if (filtered.problem_solving_cards && filtered.problem_solving_cards.length > 0) {
+      var ps = filtered.problem_solving_cards;
       var psOpen = ps.filter(function(c) { return (c.status || '').toLowerCase() === 'open'; });
       var psOverdue = ps.filter(function(c) {
         if (!c.target_date || (c.status || '').toLowerCase() === 'completed') return false;
@@ -1167,21 +1142,6 @@ function runAiAnalysis() {
         suggestions.push({ section: 'Quality Control', priority: 'medium', title: 'QCP failure rate above 5%',
           body: 'Monitor the failing parameters closely. Consider tightening control limits and increasing sampling frequency on the weak points.',
           metrics: ['Failures: ' + qcpFail.length, 'Pass rate: ' + fmt((1 - failRate) * 100, 1) + '%'] });
-      }
-    }
-
-    // --- Capacity Analysis ---
-    if (allData.capacity && allData.capacity.length > 0) {
-      var caps = allData.capacity;
-      var overCap = caps.filter(function(c) {
-        var util = parseFloat(c.utilization || c.capacity_utilization || c.actual_utilization);
-        return !isNaN(util) && util > 0.9;
-      });
-      if (overCap.length > 0) {
-        var items = overCap.slice(0, 3).map(function(c) { return (c.line || c.product || c.item || 'Unknown'); }).join(', ');
-        suggestions.push({ section: 'Capacity Constraints', priority: 'high', title: overCap.length + ' line(s) above 90% utilization',
-          body: 'Bottleneck risk on: <strong>' + items + '</strong>. At >90% utilization, any small disruption causes missed targets. Evaluate overtime, outsourcing, or capital investment for these lines.',
-          metrics: ['Constrained lines: ' + overCap.length, 'Total lines: ' + caps.length] });
       }
     }
 
@@ -1289,7 +1249,7 @@ function runAiAnalysis() {
 
     var sectionColors = { 'OEE Performance': '#ef4444', 'Availability': '#f59e0b', 'Performance': '#ef4444', 'Quality': '#3b82f6',
       'OEE Trend': '#f59e0b', 'Machine Focus': '#ef4444', 'Improvement Pipeline': '#8b5cf6', 'Improvement Categories': '#8b5cf6',
-      'Problem Solving': '#ef4444', '5S Performance': '#22c55e', 'Quality Control': '#3b82f6', 'Capacity Constraints': '#f59e0b',
+      'Problem Solving': '#ef4444', '5S Performance': '#22c55e', 'Quality Control': '#3b82f6',
       'Cost Reduction': '#22c55e', 'Task Management': '#f59e0b', 'Meeting Discipline': '#06b6d4', 'Productivity': '#8b5cf6',
       'Standard Work': '#06b6d4', 'General': '#22c55e' };
 
