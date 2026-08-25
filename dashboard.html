@@ -682,8 +682,8 @@ function renderAll() {
     <tr><td>${r.log_date}</td><td>${r.sbu}</td><td>${r.name}</td><td>${(r.problem || '').substring(0, 60)}</td><td>${badge(r.status)}</td><td>${badge(r.priority)}</td></tr>
   `).join('');
 
-  renderDWH();
   renderCharts();
+  renderDWH();
 }
 
 function renderDWH() {

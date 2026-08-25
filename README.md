@@ -22,15 +22,32 @@ browser ──> dashboard.html ──fetch──> /api/data?table=<name>  (Verce
 
 browser ──> dashboard.html ──fetch──> /api/dwh?days=7&plant=<name>  (Vercel serverless function)
                                          │
-                                         └──> MSSQL DWH (mes.tblOeeProdWasteHeaderArc) via `mssql`
+                                         └──> PostgreSQL ArlOpexDB (dwh_oee table)
+
+MSSQL DWH (mes.tblOeeProdWasteHeaderArc) ──sync-dwh.js──> PostgreSQL ArlOpexDB (dwh_oee)
 ```
 
 - `dashboard.html` — single-file frontend (Chart.js via CDN), no build step.
 - `api/data.js` — Vercel serverless function. Whitelists 18 PostgreSQL tables; rejects anything else.
-- `api/dwh.js` — Vercel serverless function. Queries the MSSQL DWH OEE table, computes OEE / capacity utilization / NPT% and returns a day-wise production trend.
+- `api/dwh.js` — Vercel serverless function. Queries the `dwh_oee` Postgres table, computes OEE / capacity utilization / NPT% and returns a day-wise production trend.
+- `sync-dwh.js` — **run on your office network** (where MSSQL DWH is reachable). Pulls OEE records from MSSQL `mes.tblOeeProdWasteHeaderArc` and upserts them into Postgres `dwh_oee`. The DWH SQL server blocks Vercel's AWS Lambda IPs, so this sync step bridges the gap. Schedule it (e.g. Task Scheduler / cron) daily.
 - `vercel.json` — routes `/api/<name>` to the matching serverless function and `/*` to `dashboard.html`.
 - `index.html` — original Supabase-based dashboard (kept for reference).
 - `db-connect.js`, `upload-tables.js` — local DB tooling used during migration.
+
+## Syncing DWH OEE data
+
+The DWH SQL server is firewalled to office IPs, so Vercel cannot query it directly. Run the sync on a machine that CAN reach DWH:
+
+```bash
+# from the office network
+node sync-dwh.js
+```
+
+Configurable via env vars:
+- `MSSQL_SERVER`, `MSSQL_PORT`, `MSSQL_DATABASE`, `MSSQL_USER`, `MSSQL_PASSWORD` — DWH source
+- `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` — ArlOpexDB destination
+- `SYNC_DAYS` — how many days of history to sync (default 30)
 
 ## Required environment variables
 
